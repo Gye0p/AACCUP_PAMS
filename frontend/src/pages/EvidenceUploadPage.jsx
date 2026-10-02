@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { uploadEvidence } from '../api'
 import Layout from '../components/Layout'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 export default function EvidenceUploadPage() {
   const { activityId } = useParams()

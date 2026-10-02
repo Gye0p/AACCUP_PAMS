@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchAreaAssignment, submitIaReview, updateActivity } from '../api'
 import { STATE_LABELS, formatDate } from '../utils'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import Layout from '../components/Layout'
 
 export default function IAReviewPage() {

@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { downloadReport, fetchCycle } from '../api'
 import { formatDate, STATE_LABELS } from '../utils'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import Layout from '../components/Layout'
 
 export default function CycleDetailPage() {
