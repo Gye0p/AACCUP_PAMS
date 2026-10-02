@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchActivity, fetchAreaAssignment, createActivity, updateActivity } from '../api'
@@ -33,7 +33,10 @@ export default function ActivityFormPage() {
     enabled: !!areaAssignmentId,
   })
 
-  const [form, setForm] = useState({
+  const [form, dispatchForm] = useReducer((state, action) => {
+    if (action.type === 'hydrate') return action.value
+    return { ...state, ...action.patch }
+  }, {
     title: '',
     description: '',
     startDate: '',
@@ -42,11 +45,14 @@ export default function ActivityFormPage() {
 
   useEffect(() => {
     if (!activity) return
-    setForm({
-      title: activity.title || '',
-      description: activity.description || '',
-      startDate: activity.startDate?.slice(0, 10) || '',
-      endDate: activity.endDate?.slice(0, 10) || '',
+    dispatchForm({
+      type: 'hydrate',
+      value: {
+        title: activity.title || '',
+        description: activity.description || '',
+        startDate: activity.startDate?.slice(0, 10) || '',
+        endDate: activity.endDate?.slice(0, 10) || '',
+      },
     })
   }, [activity])
   const [error, setError] = useState('')
@@ -139,7 +145,7 @@ export default function ActivityFormPage() {
             </label>
             <input
               value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              onChange={e => dispatchForm({ type: 'patch', patch: { title: e.target.value } })}
               required
               maxLength={300}
               placeholder="Activity title"
@@ -158,7 +164,7 @@ export default function ActivityFormPage() {
             </label>
             <textarea
               value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              onChange={e => dispatchForm({ type: 'patch', patch: { description: e.target.value } })}
               placeholder="Optional description or notes"
               rows={3}
               className="
@@ -178,7 +184,7 @@ export default function ActivityFormPage() {
               <input
                 type="date"
                 value={form.startDate}
-                onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
+                onChange={e => dispatchForm({ type: 'patch', patch: { startDate: e.target.value } })}
                 required
                 max={maxDate || undefined}
                 className="
@@ -197,7 +203,7 @@ export default function ActivityFormPage() {
               <input
                 type="date"
                 value={form.endDate}
-                onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
+                onChange={e => dispatchForm({ type: 'patch', patch: { endDate: e.target.value } })}
                 required
                 max={maxDate || undefined}
                 className="
