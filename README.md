@@ -95,6 +95,10 @@ php bin/console cache:clear
 - Cycle dashboard and Gantt chart views
 - Monitoring reports and administrative management
 
+## Audit Remediation
+
+See [docs/SECURITY_AUDIT_REMEDIATION.md](docs/SECURITY_AUDIT_REMEDIATION.md) for the completed security fixes, workflow repairs, dependency upgrades, and validation checks.
+
 ## License
 
 This project is proprietary. See the repository owner for usage and distribution permissions.
