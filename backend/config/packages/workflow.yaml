@@ -1,0 +1,35 @@
+framework:
+    workflows:
+        compliance_activity:
+            type: 'state_machine'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'state'
+            supports:
+                - App\Entity\ComplianceActivity
+            initial_marking: draft
+            places:
+                - draft
+                - submitted
+                - under_review
+                - needs_revision
+                - approved
+                - completed
+            transitions:
+                submit:
+                    from: [draft, needs_revision]
+                    to: submitted
+                start_review:
+                    from: submitted
+                    to: under_review
+                request_revision:
+                    from: under_review
+                    to: needs_revision
+                approve:
+                    from: under_review
+                    to: approved
+                complete:
+                    from: approved
+                    to: completed

@@ -1,0 +1,23 @@
+# Local environment and secrets
+backend/.env
+backend/.env.local
+backend/.env.*.local
+backend/.env.local.php
+backend/config/jwt/*.pem
+
+# Dependencies and generated assets
+backend/vendor/
+backend/var/
+frontend/node_modules/
+frontend/dist/
+
+# Logs
+*.log
+backend/server*.log
+
+# IDE and operating-system files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
