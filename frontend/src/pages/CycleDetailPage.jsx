@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { fetchCycle } from '../api'
+import { downloadReport, fetchCycle } from '../api'
 import { formatDate, STATE_LABELS } from '../utils'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
@@ -10,6 +10,8 @@ export default function CycleDetailPage() {
   const { id } = useParams()
   const { isAdmin, isProgramHead } = useAuth()
   const [openArea, setOpenArea] = useState(null)
+  const [reportLoading, setReportLoading] = useState(false)
+  const [reportError, setReportError] = useState('')
 
   const { data: cycle, isLoading } = useQuery({
     queryKey: ['cycle', id],
@@ -31,6 +33,18 @@ export default function CycleDetailPage() {
 
   const program = cycle?.program
   const deadline = cycle?.complianceDeadline
+
+  const handleReportDownload = async () => {
+    setReportLoading(true)
+    setReportError('')
+    try {
+      await downloadReport(id)
+    } catch (error) {
+      setReportError(error.response?.data?.detail || 'The report could not be generated.')
+    } finally {
+      setReportLoading(false)
+    }
+  }
 
   return (
     <Layout>
@@ -61,6 +75,14 @@ export default function CycleDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={handleReportDownload}
+            disabled={reportLoading}
+            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#b0b0b0] hover:text-white border border-[#2e2e2e] hover:border-[#424242] bg-[#1a1a1a] hover:bg-[#222] px-3 py-2 rounded transition-all duration-150 disabled:opacity-50"
+          >
+            {reportLoading ? 'Generating...' : 'Generate Report'}
+          </button>
           {(isAdmin() || isProgramHead()) && (
             <Link
               to={`/cycles/${id}/gantt`}
@@ -80,6 +102,12 @@ export default function CycleDetailPage() {
           )}
         </div>
       </div>
+
+      {reportError && (
+        <div className="mb-5 bg-[#1e1212] border border-[#4a1a1a] rounded-md px-4 py-3 text-[13px] text-[#f87171]">
+          {reportError}
+        </div>
+      )}
 
       {/* AACCUP Areas */}
       <div className="mb-3">

@@ -47,6 +47,7 @@ export const createCycle = (data) => api.post('/accreditation_cycles', data)
 
 // ── Area Assignments ──────────────────────────────────────────────
 export const fetchAreaAssignment = (id) => api.get(`/area_assignments/${id}`).then(r => r.data)
+export const fetchAreaAssignments = () => api.get('/area_assignments').then(r => r.data['hydra:member'])
 export const submitIaReview = (id, data) =>
   api.patch(`/area-assignments/${id}/ia-review`, data, { headers: { 'Content-Type': 'application/merge-patch+json' } })
 
@@ -69,12 +70,27 @@ export const uploadEvidence = (activityId, file, originalName) => {
 
 // ── Gantt ─────────────────────────────────────────────────────────
 export const fetchGantt = (cycleId) => api.get(`/gantt/${cycleId}`).then(r => r.data)
+export const downloadReport = (cycleId) =>
+  api.get(`/report/${cycleId}`, { responseType: 'blob' }).then((response) => {
+    const url = URL.createObjectURL(response.data)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `AACCUP_Report_${cycleId}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  })
 
 // ── Users (Admin) ─────────────────────────────────────────────────
 export const fetchUsers = () => api.get('/users').then(r => r.data['hydra:member'])
 export const createUser = (data) => api.post('/users', data)
 export const updateUser = (id, data) =>
   api.patch(`/users/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+export const createInternalAccreditorAssignment = (data) => api.post('/internal_accreditor_assignments', data)
+export const fetchInternalAccreditorAssignments = () =>
+  api.get('/internal_accreditor_assignments').then(r => r.data['hydra:member'])
+export const deleteInternalAccreditorAssignment = (id) => api.delete(`/internal_accreditor_assignments/${id}`)
 
 // ── SAR Recommendations ───────────────────────────────────────────
 export const fetchSarRecommendations = (areaAssignmentId) =>

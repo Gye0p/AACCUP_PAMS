@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchCycles, createCycle, fetchPrograms } from '../api'
+import {
+  createInternalAccreditorAssignment,
+  createCycle,
+  fetchAreaAssignments,
+  fetchCycles,
+  fetchInternalAccreditorAssignments,
+  fetchPrograms,
+  fetchUsers,
+} from '../api'
 import Layout from '../components/Layout'
 
 export default function AdminPage() {
@@ -138,6 +146,8 @@ export default function AdminPage() {
               </button>
             </form>
           </div>
+
+            <InternalAccreditorAssignmentPanel />
         </div>
 
         {/* Cycles table */}
@@ -191,6 +201,91 @@ export default function AdminPage() {
         </div>
       </div>
     </Layout>
+  )
+}
+
+function InternalAccreditorAssignmentPanel() {
+  const qc = useQueryClient()
+  const [internalAccreditor, setInternalAccreditor] = useState('')
+  const [areaAssignment, setAreaAssignment] = useState('')
+  const [error, setError] = useState('')
+
+  const { data: users = [] } = useQuery({ queryKey: ['users'], queryFn: fetchUsers })
+  const { data: areaAssignments = [] } = useQuery({
+    queryKey: ['area-assignments'],
+    queryFn: fetchAreaAssignments,
+  })
+  const { data: assignments = [], isLoading } = useQuery({
+    queryKey: ['internal-accreditor-assignments'],
+    queryFn: fetchInternalAccreditorAssignments,
+  })
+
+  const createMutation = useMutation({
+    mutationFn: () => createInternalAccreditorAssignment({ internalAccreditor, areaAssignment }),
+    onSuccess: () => {
+      setInternalAccreditor('')
+      setAreaAssignment('')
+      setError('')
+      qc.invalidateQueries(['internal-accreditor-assignments'])
+    },
+    onError: (err) => setError(err.response?.data?.detail || 'Failed to assign the Internal Accreditor.'),
+  })
+
+  const internalAccreditors = users.filter(user => user.role === 'ROLE_INTERNAL_ACCREDITOR')
+
+  return (
+    <div className="bg-[#1a1a1a] border border-[#252525] rounded-md p-5 mt-6">
+      <h2 className="text-[14px] font-semibold text-white mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        Assign Internal Accreditor
+      </h2>
+      <p className="text-[12px] text-[#6b6b6b] mb-4">
+        Assign an IA to an area before review begins.
+      </p>
+
+      {error && <p className="text-[12px] text-[#f87171] mb-3">{error}</p>}
+
+      <form
+        className="space-y-3"
+        onSubmit={(event) => {
+          event.preventDefault()
+          createMutation.mutate()
+        }}
+      >
+        <select value={internalAccreditor} onChange={event => setInternalAccreditor(event.target.value)} required className="form-select w-full">
+          <option value="">Select Internal Accreditor</option>
+          {internalAccreditors.map(user => (
+            <option key={user.id} value={user['@id'] || `/api/users/${user.id}`}>
+              {user.fullName || user.email}
+            </option>
+          ))}
+        </select>
+        <select value={areaAssignment} onChange={event => setAreaAssignment(event.target.value)} required className="form-select w-full">
+          <option value="">Select area assignment</option>
+          {areaAssignments.map(assignment => (
+            <option key={assignment.id} value={assignment['@id'] || `/api/area_assignments/${assignment.id}`}>
+              {assignment.cycle?.program?.code || 'Program'} - Area {assignment.area?.areaNumber}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          disabled={createMutation.isPending}
+          className="w-full bg-[#76ff03] hover:bg-[#65e000] text-[#121212] font-semibold text-[13px] px-4 py-2.5 rounded disabled:opacity-50"
+        >
+          {createMutation.isPending ? 'Assigning...' : 'Assign Area'}
+        </button>
+      </form>
+
+      {!isLoading && assignments.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {assignments.map(assignment => (
+            <div key={assignment.id} className="text-[11px] text-[#8a8a8a]">
+              {assignment.internalAccreditor?.email} - Area {assignment.areaAssignment?.area?.areaNumber}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 

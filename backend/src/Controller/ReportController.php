@@ -6,8 +6,9 @@ use App\Entity\AccreditationCycle;
 use App\Entity\MonitoringReport;
 use App\Entity\User;
 use App\Repository\InternalAccreditorAssignmentRepository;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Snappy\Pdf;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -19,7 +20,6 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 class ReportController extends AbstractController
 {
     public function __construct(
-        private Pdf $pdf,
         private EntityManagerInterface $entityManager,
         private InternalAccreditorAssignmentRepository $assignmentRepository
     ) {}
@@ -47,8 +47,14 @@ class ReportController extends AbstractController
             'generatedBy' => $this->getUser(),
         ]);
 
-        // 3. Generate PDF
-        $pdfContent = $this->pdf->getOutputFromHtml($html);
+        // 3. Generate PDF without an external binary dependency.
+        $options = new Options();
+        $options->setDefaultFont('DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdfContent = $dompdf->output();
 
         return new Response($pdfContent, 200, [
             'Content-Type' => 'application/pdf',
