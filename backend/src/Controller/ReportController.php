@@ -4,24 +4,33 @@ namespace App\Controller;
 
 use App\Entity\AccreditationCycle;
 use App\Entity\MonitoringReport;
+use App\Entity\User;
+use App\Repository\InternalAccreditorAssignmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Snappy\Pdf;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 #[Route('/api/report/{id}', name: 'api_report', methods: ['GET'])]
-#[IsGranted('ROLE_QUAMC_ADMIN')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class ReportController extends AbstractController
 {
     public function __construct(
         private Pdf $pdf,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private InternalAccreditorAssignmentRepository $assignmentRepository
     ) {}
 
     public function __invoke(AccreditationCycle $cycle): Response
     {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$this->canViewCycle($user, $cycle)) {
+            throw new AccessDeniedHttpException('You are not allowed to view this cycle report.');
+        }
+
         // 1. Log the report generation
         $report = new MonitoringReport();
         $report->setCycle($cycle);
@@ -45,5 +54,30 @@ class ReportController extends AbstractController
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => sprintf('attachment; filename="AACCUP_Report_%s.pdf"', $cycle->getProgram()->getCode())
         ]);
+    }
+
+    private function canViewCycle(User $user, AccreditationCycle $cycle): bool
+    {
+        if ($this->isGranted('ROLE_QUAMC_ADMIN') || $this->isGranted('ROLE_PRESIDENT')
+            || $this->isGranted('ROLE_CAMPUS_DIRECTOR') || $this->isGranted('ROLE_VPAA')) {
+            return true;
+        }
+        if ($this->isGranted('ROLE_PROGRAM_HEAD')) {
+            return $user->getProgram() !== null && $cycle->getProgram() === $user->getProgram();
+        }
+        if ($this->isGranted('ROLE_DEAN')) {
+            return $user->getCollege() !== null && $cycle->getProgram()->getCollege() === $user->getCollege();
+        }
+        if ($this->isGranted('ROLE_INTERNAL_ACCREDITOR')) {
+            foreach ($cycle->getAreaAssignments() as $assignment) {
+                if ($this->assignmentRepository->findOneBy([
+                    'internalAccreditor' => $user,
+                    'areaAssignment' => $assignment,
+                ])) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

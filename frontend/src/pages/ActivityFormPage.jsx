@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchAreaAssignment, createActivity, updateActivity } from '../api'
+import { fetchActivity, fetchAreaAssignment, createActivity, updateActivity } from '../api'
 import { formatDateShort } from '../utils'
 import Layout from '../components/Layout'
 
@@ -12,8 +12,20 @@ export default function ActivityFormPage() {
   const { id: editId } = useParams()
 
   const areaAssignmentIri = searchParams.get('areaAssignment') || ''
-  const deadline = searchParams.get('deadline') || ''
-  const areaAssignmentId = areaAssignmentIri.split('/').pop()
+  const requestedDeadline = searchParams.get('deadline') || ''
+
+  const { data: activity } = useQuery({
+    queryKey: ['activity', editId],
+    queryFn: () => fetchActivity(editId),
+    enabled: !!editId,
+  })
+
+  const activityAssignmentIri = typeof activity?.areaAssignment === 'string'
+    ? activity.areaAssignment
+    : activity?.areaAssignment?.['@id'] || ''
+  const effectiveAreaAssignmentIri = areaAssignmentIri || activityAssignmentIri
+  const areaAssignmentId = effectiveAreaAssignmentIri.split('/').pop()
+  const deadline = requestedDeadline || activity?.areaAssignment?.cycle?.complianceDeadline || ''
 
   const { data: aa } = useQuery({
     queryKey: ['area-assignment', areaAssignmentId],
@@ -27,6 +39,16 @@ export default function ActivityFormPage() {
     startDate: '',
     endDate: '',
   })
+
+  useEffect(() => {
+    if (!activity) return
+    setForm({
+      title: activity.title || '',
+      description: activity.description || '',
+      startDate: activity.startDate?.slice(0, 10) || '',
+      endDate: activity.endDate?.slice(0, 10) || '',
+    })
+  }, [activity])
   const [error, setError] = useState('')
   const maxDate = deadline ? formatDateShort(deadline) : ''
 
@@ -47,12 +69,12 @@ export default function ActivityFormPage() {
     e.preventDefault()
     setError('')
     const payload = {
-      areaAssignment: areaAssignmentIri,
       title: form.title,
       description: form.description,
       startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
       endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
     }
+    if (!editId) payload.areaAssignment = effectiveAreaAssignmentIri
     mutation.mutate(payload)
   }
 

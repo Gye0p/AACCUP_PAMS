@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCycle } from '../api'
-import { formatDate, STATE_COLORS, STATE_LABELS } from '../utils'
+import { formatDate, STATE_LABELS } from '../utils'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 
 export default function CycleDetailPage() {
   const { id } = useParams()
-  const { isAdmin, isProgramHead, isIA } = useAuth()
+  const { isAdmin, isProgramHead } = useAuth()
   const [openArea, setOpenArea] = useState(null)
 
   const { data: cycle, isLoading } = useQuery({
@@ -96,8 +96,8 @@ export default function CycleDetailPage() {
             isOpen={openArea === aa.id}
             onToggle={() => setOpenArea(openArea === aa.id ? null : aa.id)}
             cycleDeadline={deadline}
-            canAct={isAdmin() || isProgramHead() || isIA()}
-            cycleId={id}
+            canAct={isAdmin() || isProgramHead()}
+            canEditActivity={isAdmin() || isProgramHead()}
           />
         ))}
       </div>
@@ -105,7 +105,7 @@ export default function CycleDetailPage() {
   )
 }
 
-function AreaAccordionItem({ areaAssignment, isOpen, onToggle, cycleDeadline, canAct, cycleId }) {
+function AreaAccordionItem({ areaAssignment, isOpen, onToggle, cycleDeadline, canAct, canEditActivity }) {
   const aa = areaAssignment
 
   const iaStatusStyles = {
@@ -217,12 +217,16 @@ function AreaAccordionItem({ areaAssignment, isOpen, onToggle, cycleDeadline, ca
                   {aa.complianceActivities.map(act => (
                     <tr key={act.id} className="hover:bg-[#1e1e1e] transition-colors duration-100">
                       <td className="px-3 py-2.5">
-                        <Link
-                          to={`/activities/${act.id}/edit`}
-                          className="text-[#b0b0b0] hover:text-[#76ff03] transition-colors line-clamp-1"
-                        >
-                          {act.title}
-                        </Link>
+                        {canEditActivity ? (
+                          <Link
+                            to={`/activities/${act.id}/edit`}
+                            className="text-[#b0b0b0] hover:text-[#76ff03] transition-colors line-clamp-1"
+                          >
+                            {act.title}
+                          </Link>
+                        ) : (
+                          <span className="text-[#b0b0b0] line-clamp-1">{act.title}</span>
+                        )}
                       </td>
                       <td className="px-3 py-2.5 text-[#8a8a8a] hidden sm:table-cell whitespace-nowrap">
                         {formatDate(act.startDate)}

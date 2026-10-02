@@ -20,8 +20,14 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_QUAMC_ADMIN')"),
-        new Patch(security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_QUAMC_ADMIN') or is_granted('ROLE_INTERNAL_ACCREDITOR')"),
+        new Post(
+            security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_QUAMC_ADMIN')",
+            securityPostDenormalize: "is_granted('ROLE_QUAMC_ADMIN') or (is_granted('ROLE_PROGRAM_HEAD') and object.getAreaAssignment().getCycle().getProgram() == user.getProgram())",
+        ),
+        new Patch(
+            security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_QUAMC_ADMIN') or is_granted('ROLE_INTERNAL_ACCREDITOR')",
+            securityPostDenormalize: "is_granted('ROLE_QUAMC_ADMIN') or (is_granted('ROLE_PROGRAM_HEAD') and object.getAreaAssignment().getCycle().getProgram() == user.getProgram()) or is_granted('ROLE_INTERNAL_ACCREDITOR')",
+        ),
         new Delete(security: "is_granted('ROLE_QUAMC_ADMIN')"),
     ],
     normalizationContext: ['groups' => ['activity:read']],

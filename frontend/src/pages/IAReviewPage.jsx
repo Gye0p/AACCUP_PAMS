@@ -17,12 +17,15 @@ export default function IAReviewPage() {
     queryFn: () => fetchAreaAssignment(id),
   })
 
-  const [iaStatus, setIaStatus] = useState(aa?.iaStatus || 'pending')
-  const [iaComments, setIaComments] = useState(aa?.iaComments || '')
+  const [iaStatus, setIaStatus] = useState(null)
+  const [iaComments, setIaComments] = useState(null)
   const [reviewSuccess, setReviewSuccess] = useState(false)
 
+  const effectiveIaStatus = iaStatus ?? aa?.iaStatus ?? 'pending'
+  const effectiveIaComments = iaComments ?? aa?.iaComments ?? ''
+
   const reviewMutation = useMutation({
-    mutationFn: () => submitIaReview(id, { iaStatus, iaComments }),
+    mutationFn: () => submitIaReview(id, { iaStatus: effectiveIaStatus, iaComments: effectiveIaComments }),
     onSuccess: () => {
       qc.invalidateQueries(['area-assignment', id])
       setReviewSuccess(true)
@@ -139,7 +142,7 @@ export default function IAReviewPage() {
                     IA Status
                   </label>
                   <select
-                    value={iaStatus}
+                    value={effectiveIaStatus}
                     onChange={e => setIaStatus(e.target.value)}
                     className="
                       w-full bg-[#121212] border border-[#2e2e2e] rounded
@@ -159,7 +162,7 @@ export default function IAReviewPage() {
                     Comments
                   </label>
                   <textarea
-                    value={iaComments}
+                    value={effectiveIaComments}
                     onChange={e => setIaComments(e.target.value)}
                     placeholder="Enter review comments or notes…"
                     rows={5}

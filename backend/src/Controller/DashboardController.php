@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Repository\AccreditationCycleRepository;
+use App\Repository\InternalAccreditorAssignmentRepository;
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,18 +16,41 @@ class DashboardController extends AbstractController
 {
     public function __construct(
         private AccreditationCycleRepository $cycleRepository
+        , private InternalAccreditorAssignmentRepository $assignmentRepository
     ) {}
 
     public function __invoke(): JsonResponse
     {
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json([]);
+        }
+
         $cycles = $this->cycleRepository->findAll();
         
-        // Basic filtering based on role for dashboard view
-        if ($this->isGranted('ROLE_PROGRAM_HEAD') && $user->getProgram()) {
+        $canViewAll = $this->isGranted('ROLE_QUAMC_ADMIN')
+            || $this->isGranted('ROLE_PRESIDENT')
+            || $this->isGranted('ROLE_CAMPUS_DIRECTOR')
+            || $this->isGranted('ROLE_VPAA');
+
+        if (!$canViewAll && $this->isGranted('ROLE_PROGRAM_HEAD') && $user->getProgram()) {
             $cycles = array_filter($cycles, fn($c) => $c->getProgram() === $user->getProgram());
-        } elseif ($this->isGranted('ROLE_DEAN') && $user->getCollege()) {
+        } elseif (!$canViewAll && $this->isGranted('ROLE_DEAN') && $user->getCollege()) {
             $cycles = array_filter($cycles, fn($c) => $c->getProgram()->getCollege() === $user->getCollege());
+        } elseif (!$canViewAll && $this->isGranted('ROLE_INTERNAL_ACCREDITOR')) {
+            $cycles = array_filter($cycles, function ($cycle) use ($user): bool {
+                foreach ($cycle->getAreaAssignments() as $assignment) {
+                    if ($this->assignmentRepository->findOneBy([
+                        'internalAccreditor' => $user,
+                        'areaAssignment' => $assignment,
+                    ])) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        } elseif (!$canViewAll) {
+            $cycles = [];
         }
 
         $dashboardData = [];

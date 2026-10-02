@@ -26,7 +26,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Post(security: "is_granted('ROLE_QUAMC_ADMIN')"),
         new Get(security: "is_granted('ROLE_QUAMC_ADMIN') or object == user"),
         new Put(security: "is_granted('ROLE_QUAMC_ADMIN')"),
-        new Patch(security: "is_granted('ROLE_QUAMC_ADMIN') or object == user"),
+        new Patch(security: "is_granted('ROLE_QUAMC_ADMIN')"),
         new Delete(security: "is_granted('ROLE_QUAMC_ADMIN')"),
     ],
     normalizationContext: ['groups' => ['user:read']],

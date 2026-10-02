@@ -22,6 +22,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
         new Get(),
         new Post(
             security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_QUAMC_ADMIN')",
+            securityPostDenormalize: "is_granted('ROLE_QUAMC_ADMIN') or (is_granted('ROLE_PROGRAM_HEAD') and object.getActivity().getAreaAssignment().getCycle().getProgram() == user.getProgram())",
             inputFormats: ['multipart' => ['multipart/form-data']],
         ),
         new Delete(security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_QUAMC_ADMIN')"),

@@ -53,6 +53,7 @@ export const submitIaReview = (id, data) =>
 // ── Compliance Activities ─────────────────────────────────────────
 export const fetchActivities = (areaAssignmentId) =>
   api.get(`/compliance_activities?areaAssignment=${areaAssignmentId}`).then(r => r.data['hydra:member'])
+export const fetchActivity = (id) => api.get(`/compliance_activities/${id}`).then(r => r.data)
 export const createActivity = (data) => api.post('/compliance_activities', data)
 export const updateActivity = (id, data) =>
   api.patch(`/compliance_activities/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' } })
