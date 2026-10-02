@@ -42,16 +42,7 @@
             "symfony/flex": true,
             "symfony/runtime": true
         },
-        "sort-packages": true,
-        "audit": {
-            "ignore": [
-                "PKSA-8kfs-m8zw-ggzs",
-                "PKSA-3ncz-km6v-5vjr",
-                "PKSA-gs8r-6kz6-pp56",
-                "PKSA-gnn4-pxdg-q76m",
-                "PKSA-q2bp-c9gn-wy37"
-            ]
-        }
+        "sort-packages": true
     },
     "autoload": {
         "psr-4": {
