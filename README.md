@@ -99,6 +99,10 @@ php bin/console cache:clear
 
 See [docs/SECURITY_AUDIT_REMEDIATION.md](docs/SECURITY_AUDIT_REMEDIATION.md) for the completed security fixes, workflow repairs, dependency upgrades, and validation checks.
 
+## User Guide
+
+See [docs/USER_GUIDE.md](docs/USER_GUIDE.md) for role permissions, dashboard use, activity workflows, evidence uploads, IA reviews, schedules, and troubleshooting.
+
 ## License
 
 This project is proprietary. See the repository owner for usage and distribution permissions.
