@@ -19,12 +19,12 @@ class DataScopeExtension implements QueryCollectionExtensionInterface, QueryItem
 {
     public function __construct(private Security $security) {}
 
-    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, Operation $operation = null, array $context = []): void
+    public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         $this->addWhere($queryBuilder, $resourceClass);
     }
 
-    public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, Operation $operation = null, array $context = []): void
+    public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, ?Operation $operation = null, array $context = []): void
     {
         $this->addWhere($queryBuilder, $resourceClass);
     }
@@ -72,6 +72,10 @@ class DataScopeExtension implements QueryCollectionExtensionInterface, QueryItem
                 $queryBuilder->join('aa_ph2.cycle', 'cycle_ph3');
                 $queryBuilder->andWhere('cycle_ph3.program = :programId');
                 $queryBuilder->setParameter('programId', $programId);
+                } elseif (MonitoringReport::class === $resourceClass) {
+                    $queryBuilder->join(sprintf('%s.cycle', $rootAlias), 'cycle_report_ph');
+                    $queryBuilder->andWhere('cycle_report_ph.program = :programId');
+                    $queryBuilder->setParameter('programId', $programId);
             }
         }
 
@@ -98,6 +102,11 @@ class DataScopeExtension implements QueryCollectionExtensionInterface, QueryItem
                 $queryBuilder->join('cycle_dean2.program', 'prog_dean3');
                 $queryBuilder->andWhere('prog_dean3.college = :collegeId');
                 $queryBuilder->setParameter('collegeId', $collegeId);
+                } elseif (MonitoringReport::class === $resourceClass) {
+                    $queryBuilder->join(sprintf('%s.cycle', $rootAlias), 'cycle_report_dean');
+                    $queryBuilder->join('cycle_report_dean.program', 'prog_report_dean');
+                    $queryBuilder->andWhere('prog_report_dean.college = :collegeId');
+                    $queryBuilder->setParameter('collegeId', $collegeId);
             }
         }
 
@@ -112,6 +121,12 @@ class DataScopeExtension implements QueryCollectionExtensionInterface, QueryItem
                 $queryBuilder->join('App\Entity\InternalAccreditorAssignment', 'iaa2', 'WITH', sprintf('iaa2.areaAssignment = %s.areaAssignment', $rootAlias));
                 $queryBuilder->andWhere('iaa2.internalAccreditor = :userId');
                 $queryBuilder->setParameter('userId', $user->getId());
+                } elseif (MonitoringReport::class === $resourceClass) {
+                    $queryBuilder->join(sprintf('%s.cycle', $rootAlias), 'cycle_report_ia');
+                    $queryBuilder->join('cycle_report_ia.areaAssignments', 'aa_report_ia');
+                    $queryBuilder->join('App\Entity\InternalAccreditorAssignment', 'iaa3', 'WITH', 'iaa3.areaAssignment = aa_report_ia.id');
+                    $queryBuilder->andWhere('iaa3.internalAccreditor = :userId');
+                    $queryBuilder->setParameter('userId', $user->getId());
             }
         }
     }

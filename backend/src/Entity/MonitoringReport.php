@@ -16,7 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(security: "is_granted('ROLE_QUAMC_ADMIN') or is_granted('ROLE_INTERNAL_ACCREDITOR')"),
+           new Post(security: "is_granted('ROLE_QUAMC_ADMIN')"),
     ],
     normalizationContext: ['groups' => ['report:read']],
     denormalizationContext: ['groups' => ['report:write']],
