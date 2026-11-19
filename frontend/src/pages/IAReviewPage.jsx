@@ -27,7 +27,7 @@ export default function IAReviewPage() {
   const reviewMutation = useMutation({
     mutationFn: () => submitIaReview(id, { iaStatus: effectiveIaStatus, iaComments: effectiveIaComments }),
     onSuccess: () => {
-      qc.invalidateQueries(['area-assignment', id])
+      qc.invalidateQueries({ queryKey: ['area-assignment', id] })
       setReviewSuccess(true)
       setTimeout(() => setReviewSuccess(false), 5000)
     }
@@ -35,7 +35,7 @@ export default function IAReviewPage() {
 
   const transitionMutation = useMutation({
     mutationFn: ({ actId, transition }) => updateActivity(actId, { transition }),
-    onSuccess: () => qc.invalidateQueries(['area-assignment', id])
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['area-assignment', id] })
   })
 
   if (isLoading) return (

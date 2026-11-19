@@ -20,7 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new GetCollection(),
         new Get(),
         new Post(security: "is_granted('ROLE_QUAMC_ADMIN')"),
-        new Patch(security: "is_granted('ROLE_QUAMC_ADMIN')"),
+        new Patch(security: "is_granted('ROLE_QUAMC_ADMIN') or is_granted('ROLE_PROGRAM_HEAD')"),
     ],
     normalizationContext: ['groups' => ['cycle:read']],
     denormalizationContext: ['groups' => ['cycle:write']],
@@ -63,9 +63,24 @@ class AccreditationCycle
     #[Groups(['cycle:read'])]
     private string $status = self::STATUS_ACTIVE;
 
+    #[ORM\Column(length: 20)]
+    #[Assert\NotBlank]
+    #[Groups(['cycle:read', 'cycle:write'])]
+    private ?string $accreditationLevel = null;
+
+    /** undergraduate or graduate; used only for Level III cycles */
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['cycle:read', 'cycle:write'])]
+    private ?string $programType = null;
+
     #[ORM\OneToMany(targetEntity: AreaAssignment::class, mappedBy: 'cycle', cascade: ['persist'])]
     #[Groups(['cycle:read'])]
     private Collection $areaAssignments;
+
+    /** JSON array of optional AACCUP area IDs chosen by Program Head (Level III programs pick 2 optional areas) */
+    #[ORM\Column(type: 'json', nullable: true)]
+    #[Groups(['cycle:read', 'cycle:write'])]
+    private ?array $optionalAreaIds = null;
 
     public function __construct()
     {
@@ -96,6 +111,12 @@ class AccreditationCycle
     public function getStatus(): string { return $this->status; }
     public function setStatus(string $status): static { $this->status = $status; return $this; }
 
+    public function getAccreditationLevel(): ?string { return $this->accreditationLevel; }
+    public function setAccreditationLevel(string $accreditationLevel): static { $this->accreditationLevel = $accreditationLevel; return $this; }
+
+    public function getProgramType(): ?string { return $this->programType; }
+    public function setProgramType(?string $programType): static { $this->programType = $programType; return $this; }
+
     public function getAreaAssignments(): Collection { return $this->areaAssignments; }
     public function addAreaAssignment(AreaAssignment $aa): static
     {
@@ -105,4 +126,7 @@ class AccreditationCycle
         }
         return $this;
     }
+
+    public function getOptionalAreaIds(): ?array { return $this->optionalAreaIds; }
+    public function setOptionalAreaIds(?array $optionalAreaIds): static { $this->optionalAreaIds = $optionalAreaIds; return $this; }
 }

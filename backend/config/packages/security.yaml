@@ -44,3 +44,4 @@ security:
         ROLE_INTERNAL_ACCREDITOR: []
         ROLE_DEAN: []
         ROLE_PROGRAM_HEAD: []
+        ROLE_AREA_COORDINATOR: []

@@ -63,7 +63,7 @@ export default function ActivityFormPage() {
       ? updateActivity(editId, data)
       : createActivity(data),
     onSuccess: () => {
-      qc.invalidateQueries(['cycle'])
+      qc.invalidateQueries({ queryKey: ['cycle'] })
       navigate(-1)
     },
     onError: (err) => {

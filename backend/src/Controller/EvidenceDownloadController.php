@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\AccreditationCycle;
+use App\Entity\AreaAssignment;
 use App\Entity\Evidence;
 use App\Entity\User;
 use App\Repository\InternalAccreditorAssignmentRepository;
+use App\Repository\AreaCoordinatorAssignmentRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -18,13 +20,21 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 class EvidenceDownloadController extends AbstractController
 {
-    public function __construct(private InternalAccreditorAssignmentRepository $assignmentRepository) {}
+    public function __construct(
+        private InternalAccreditorAssignmentRepository $assignmentRepository,
+        private AreaCoordinatorAssignmentRepository $areaCoordinatorAssignmentRepository,
+    ) {}
 
     public function __invoke(Evidence $evidence): BinaryFileResponse
     {
         $user = $this->getUser();
-        $cycle = $evidence->getActivity()?->getAreaAssignment()?->getCycle();
-        if (!$user instanceof User || !$cycle instanceof AccreditationCycle || !$this->canViewCycle($user, $cycle)) {
+        $areaAssignment = $evidence->getAreaAssignment()
+            ?? $evidence->getActivity()?->getAreaAssignment();
+        $cycle = $areaAssignment?->getCycle();
+        if (!$user instanceof User
+            || !$cycle instanceof AccreditationCycle
+            || !$areaAssignment instanceof AreaAssignment
+            || !$this->canViewEvidence($user, $cycle, $areaAssignment)) {
             throw new AccessDeniedHttpException('You are not allowed to download this evidence.');
         }
 
@@ -42,7 +52,7 @@ class EvidenceDownloadController extends AbstractController
         return $response;
     }
 
-    private function canViewCycle(User $user, AccreditationCycle $cycle): bool
+    private function canViewEvidence(User $user, AccreditationCycle $cycle, AreaAssignment $areaAssignment): bool
     {
         if ($this->isGranted('ROLE_QUAMC_ADMIN') || $this->isGranted('ROLE_PRESIDENT')
             || $this->isGranted('ROLE_CAMPUS_DIRECTOR') || $this->isGranted('ROLE_VPAA')) {
@@ -55,14 +65,16 @@ class EvidenceDownloadController extends AbstractController
             return $user->getCollege() !== null && $cycle->getProgram()->getCollege() === $user->getCollege();
         }
         if ($this->isGranted('ROLE_INTERNAL_ACCREDITOR')) {
-            foreach ($cycle->getAreaAssignments() as $assignment) {
-                if ($this->assignmentRepository->findOneBy([
-                    'internalAccreditor' => $user,
-                    'areaAssignment' => $assignment,
-                ])) {
-                    return true;
-                }
-            }
+            return $this->assignmentRepository->findOneBy([
+                'internalAccreditor' => $user,
+                'areaAssignment' => $areaAssignment,
+            ]) !== null;
+        }
+        if ($this->isGranted('ROLE_AREA_COORDINATOR')) {
+            return $this->areaCoordinatorAssignmentRepository->findOneBy([
+                'areaCoordinator' => $user,
+                'areaAssignment' => $areaAssignment,
+            ]) !== null;
         }
         return false;
     }

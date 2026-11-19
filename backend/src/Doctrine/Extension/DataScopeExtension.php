@@ -11,6 +11,7 @@ use App\Entity\AreaAssignment;
 use App\Entity\ComplianceActivity;
 use App\Entity\Evidence;
 use App\Entity\MonitoringReport;
+use App\Entity\Notification;
 use App\Entity\Program;
 use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
@@ -37,10 +38,18 @@ class DataScopeExtension implements QueryCollectionExtensionInterface, QueryItem
             return;
         }
 
+        // Notifications are ALWAYS scoped to the logged-in recipient, regardless of role.
+        if (Notification::class === $resourceClass) {
+            $rootAlias = $queryBuilder->getRootAliases()[0];
+            $queryBuilder->andWhere(sprintf('%s.recipient = :currentUserId', $rootAlias));
+            $queryBuilder->setParameter('currentUserId', $user->getId());
+            return;
+        }
+
         // QUAMC Admin, President, Campus Director, VPAA can see everything
-        if ($this->security->isGranted('ROLE_QUAMC_ADMIN') || 
-            $this->security->isGranted('ROLE_PRESIDENT') || 
-            $this->security->isGranted('ROLE_CAMPUS_DIRECTOR') || 
+        if ($this->security->isGranted('ROLE_QUAMC_ADMIN') ||
+            $this->security->isGranted('ROLE_PRESIDENT') ||
+            $this->security->isGranted('ROLE_CAMPUS_DIRECTOR') ||
             $this->security->isGranted('ROLE_VPAA')) {
             return;
         }
@@ -48,7 +57,6 @@ class DataScopeExtension implements QueryCollectionExtensionInterface, QueryItem
         $rootAlias = $queryBuilder->getRootAliases()[0];
 
         // --- PROGRAM HEAD SCOPE ---
-        // Program Heads only see data related to their assigned program.
         if ($this->security->isGranted('ROLE_PROGRAM_HEAD') && $user->getProgram()) {
             $programId = $user->getProgram()->getId();
 
@@ -80,8 +88,38 @@ class DataScopeExtension implements QueryCollectionExtensionInterface, QueryItem
             }
         }
 
+        // --- AREA COORDINATOR SCOPE ---
+        // Area Coordinators see only the AreaAssignments (and activities) they are assigned to.
+        if ($this->security->isGranted('ROLE_AREA_COORDINATOR')) {
+            if (AreaAssignment::class === $resourceClass) {
+                $queryBuilder->join('App\Entity\AreaCoordinatorAssignment', 'aca', 'WITH', sprintf('aca.areaAssignment = %s.id', $rootAlias));
+                $queryBuilder->andWhere('aca.areaCoordinator = :userId');
+                $queryBuilder->setParameter('userId', $user->getId());
+            } elseif (ComplianceActivity::class === $resourceClass) {
+                $queryBuilder->join('App\Entity\AreaCoordinatorAssignment', 'aca2', 'WITH', sprintf('aca2.areaAssignment = %s.areaAssignment', $rootAlias));
+                $queryBuilder->andWhere('aca2.areaCoordinator = :userId');
+                $queryBuilder->setParameter('userId', $user->getId());
+            } elseif (Evidence::class === $resourceClass) {
+                $queryBuilder->leftJoin(sprintf('%s.activity', $rootAlias), 'ev_activity_ac');
+                $queryBuilder->leftJoin('ev_activity_ac.areaAssignment', 'ev_activity_aa_ac');
+                $queryBuilder->leftJoin(sprintf('%s.areaAssignment', $rootAlias), 'ev_area_aa_ac');
+                $queryBuilder->join(
+                    'App\Entity\AreaCoordinatorAssignment',
+                    'ev_aca',
+                    'WITH',
+                    '(ev_aca.areaAssignment = ev_activity_aa_ac.id OR ev_aca.areaAssignment = ev_area_aa_ac.id)'
+                );
+                $queryBuilder->andWhere('ev_aca.areaCoordinator = :userId');
+                $queryBuilder->setParameter('userId', $user->getId());
+            } elseif (AccreditationCycle::class === $resourceClass) {
+                $queryBuilder->join(sprintf('%s.areaAssignments', $rootAlias), 'aa_ac');
+                $queryBuilder->join('App\Entity\AreaCoordinatorAssignment', 'aca3', 'WITH', 'aca3.areaAssignment = aa_ac.id');
+                $queryBuilder->andWhere('aca3.areaCoordinator = :userId');
+                $queryBuilder->setParameter('userId', $user->getId());
+            }
+        }
+
         // --- DEAN SCOPE ---
-        // Deans only see data related to their assigned college.
         if ($this->security->isGranted('ROLE_DEAN') && $user->getCollege()) {
             $collegeId = $user->getCollege()->getId();
 
@@ -112,20 +150,29 @@ class DataScopeExtension implements QueryCollectionExtensionInterface, QueryItem
         }
 
         // --- INTERNAL ACCREDITOR SCOPE ---
-        // IAs only see their assigned AreaAssignments, and activities within them.
         if ($this->security->isGranted('ROLE_INTERNAL_ACCREDITOR')) {
-            if (AreaAssignment::class === $resourceClass) {
-                $queryBuilder->join('App\Entity\InternalAccreditorAssignment', 'iaa', 'WITH', sprintf('iaa.areaAssignment = %s.id', $rootAlias));
+            if (AccreditationCycle::class === $resourceClass) {
+                $queryBuilder->join(sprintf('%s.areaAssignments', $rootAlias), 'aa_cycle_ia');
+                $queryBuilder->join('App\Entity\InternalAccreditorAssignment', 'iaa_cycle', 'WITH', 'iaa_cycle.areaAssignment = aa_cycle_ia.id');
+                $queryBuilder->andWhere('iaa_cycle.internalAccreditor = :userId');
+                $queryBuilder->setParameter('userId', $user->getId());
+            } elseif (AreaAssignment::class === $resourceClass) {
+                $queryBuilder->join(sprintf('%s.cycle', $rootAlias), 'ia_cycle');
+                $queryBuilder->join('ia_cycle.program', 'ia_program');
+                $queryBuilder->join('App\Entity\InternalAccreditorAssignment', 'iaa', 'WITH', 'iaa.program = ia_program');
                 $queryBuilder->andWhere('iaa.internalAccreditor = :userId');
                 $queryBuilder->setParameter('userId', $user->getId());
             } elseif (ComplianceActivity::class === $resourceClass) {
-                $queryBuilder->join('App\Entity\InternalAccreditorAssignment', 'iaa2', 'WITH', sprintf('iaa2.areaAssignment = %s.areaAssignment', $rootAlias));
+                $queryBuilder->join(sprintf('%s.areaAssignment', $rootAlias), 'ia_aa');
+                $queryBuilder->join('ia_aa.cycle', 'ia_cycle2');
+                $queryBuilder->join('ia_cycle2.program', 'ia_program2');
+                $queryBuilder->join('App\Entity\InternalAccreditorAssignment', 'iaa2', 'WITH', 'iaa2.program = ia_program2');
                 $queryBuilder->andWhere('iaa2.internalAccreditor = :userId');
                 $queryBuilder->setParameter('userId', $user->getId());
             } elseif (MonitoringReport::class === $resourceClass) {
                 $queryBuilder->join(sprintf('%s.cycle', $rootAlias), 'cycle_report_ia');
-                $queryBuilder->join('cycle_report_ia.areaAssignments', 'aa_report_ia');
-                $queryBuilder->join('App\\Entity\\InternalAccreditorAssignment', 'iaa3', 'WITH', 'iaa3.areaAssignment = aa_report_ia.id');
+                $queryBuilder->join('cycle_report_ia.program', 'ia_report_program');
+                $queryBuilder->join('App\\Entity\\InternalAccreditorAssignment', 'iaa3', 'WITH', 'iaa3.program = ia_report_program');
                 $queryBuilder->andWhere('iaa3.internalAccreditor = :userId');
                 $queryBuilder->setParameter('userId', $user->getId());
             }

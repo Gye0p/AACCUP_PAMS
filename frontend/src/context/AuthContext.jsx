@@ -38,11 +38,12 @@ export function AuthProvider({ children }) {
   const isProgramHead = () => hasRole('ROLE_PROGRAM_HEAD')
   const isIA = () => hasRole('ROLE_INTERNAL_ACCREDITOR')
   const isDean = () => hasRole('ROLE_DEAN')
+  const isAreaCoordinator = () => hasRole('ROLE_AREA_COORDINATOR')
   const isReadOnly = () =>
     hasRole('ROLE_PRESIDENT') || hasRole('ROLE_CAMPUS_DIRECTOR') || hasRole('ROLE_VPAA')
 
   return (
-    <AuthContext.Provider value={{ token, user, loginSuccess, logout, getRoles, hasRole, isAdmin, isProgramHead, isIA, isDean, isReadOnly }}>
+    <AuthContext.Provider value={{ token, user, loginSuccess, logout, getRoles, hasRole, isAdmin, isProgramHead, isIA, isDean, isAreaCoordinator, isReadOnly }}>
       {children}
     </AuthContext.Provider>
   )

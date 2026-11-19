@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { downloadReport, fetchCycle } from '../api'
-import { formatDate, STATE_LABELS } from '../utils'
+import { AACCUP_AREAS, formatDate, STATE_LABELS } from '../utils'
 import { useAuth } from '../context/useAuth'
 import Layout from '../components/Layout'
 
 export default function CycleDetailPage() {
   const { id } = useParams()
-  const { isAdmin, isProgramHead } = useAuth()
+  const { isAdmin, isProgramHead, isAreaCoordinator } = useAuth()
   const [openArea, setOpenArea] = useState(null)
   const [reportLoading, setReportLoading] = useState(false)
   const [reportError, setReportError] = useState('')
@@ -71,6 +71,17 @@ export default function CycleDetailPage() {
             </span>
             <span className="text-[#3a3a3a]">·</span>
             <CycleStatusPill status={cycle?.status} />
+            {cycle?.accreditationLevel && (
+              <>
+                <span className="text-[#3a3a3a]">·</span>
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-[#76ff03]/10 text-[#76ff03]">
+                  {cycle.accreditationLevel}
+                  {cycle.accreditationLevel === 'Level III' && cycle.programType
+                    ? ` — ${cycle.programType}`
+                    : ''}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -117,15 +128,18 @@ export default function CycleDetailPage() {
       </div>
 
       <div className="space-y-2">
-        {cycle?.areaAssignments?.map(aa => (
+        {cycle?.areaAssignments?.map((aa, index) => (
           <AreaAccordionItem
             key={aa.id}
             areaAssignment={aa}
+            areaIndex={index}
+            cycle={cycle}
             isOpen={openArea === aa.id}
             onToggle={() => setOpenArea(openArea === aa.id ? null : aa.id)}
             cycleDeadline={deadline}
             canAct={isAdmin() || isProgramHead()}
             canEditActivity={isAdmin() || isProgramHead()}
+            canUploadAreaEvidence={isAreaCoordinator() || isAdmin()}
           />
         ))}
       </div>
@@ -133,8 +147,25 @@ export default function CycleDetailPage() {
   )
 }
 
-function AreaAccordionItem({ areaAssignment, isOpen, onToggle, cycleDeadline, canAct, canEditActivity }) {
+function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, onToggle, cycleDeadline, canAct, canEditActivity, canUploadAreaEvidence }) {
   const aa = areaAssignment
+  const fallbackArea = AACCUP_AREAS[areaIndex]
+  const areaNumber = aa.area?.areaNumber || fallbackArea?.number || String(areaIndex + 1)
+  const areaName = aa.area?.name || fallbackArea?.name || 'Unnamed AACCUP Area'
+
+  let areaTypeLabel = null
+  if (cycle?.accreditationLevel === 'Level III') {
+    const mandatoryNumbers = cycle.programType === 'graduate' ? ['III', 'VI'] : ['III', 'V']
+    const selectedOptionalAreas = cycle.optionalAreaIds || []
+    areaTypeLabel = mandatoryNumbers.includes(areaNumber)
+      ? 'Mandatory'
+      : selectedOptionalAreas.includes(aa.area?.id)
+        || selectedOptionalAreas.includes(areaNumber)
+        ? 'Optional'
+        : null
+  } else if (cycle?.accreditationLevel === 'Level IV') {
+    areaTypeLabel = 'Mandatory'
+  }
 
   const iaStatusStyles = {
     pending:        { badge: 'bg-[#252525] text-[#8a8a8a]' },
@@ -158,10 +189,15 @@ function AreaAccordionItem({ areaAssignment, isOpen, onToggle, cycleDeadline, ca
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className="flex-shrink-0 text-[12px] font-semibold text-[#76ff03] w-14">
-            Area {aa.area?.areaNumber}
+          <span className="flex-shrink-0 text-[12px] font-semibold text-[#76ff03] min-w-16">
+            Area {areaNumber}
           </span>
-          <span className="text-[13px] text-[#d0d0d0] truncate">{aa.area?.name}</span>
+          <span className="text-[13px] text-[#d0d0d0] truncate">{areaName}</span>
+          {areaTypeLabel && (
+            <span className="flex-shrink-0 text-[10px] font-medium px-2 py-0.5 rounded uppercase tracking-wide bg-[#76ff03]/10 text-[#76ff03]">
+              {areaTypeLabel}
+            </span>
+          )}
           {activityCount > 0 && (
             <span className="flex-shrink-0 text-[11px] text-[#6b6b6b] bg-[#252525] px-1.5 py-0.5 rounded">
               {activityCount}
@@ -212,6 +248,22 @@ function AreaAccordionItem({ areaAssignment, isOpen, onToggle, cycleDeadline, ca
                   <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
                 New Activity
+              </Link>
+            )}
+            {canUploadAreaEvidence && (
+              <Link
+                to={`/evidence/area/${aa.id}`}
+                className="
+                  inline-flex items-center gap-1.5 text-[12px] font-medium
+                  bg-[#76ff03]/10 text-[#76ff03] hover:bg-[#76ff03]/20
+                  border border-[#76ff03]/30
+                  px-3 py-1.5 rounded transition-colors duration-150
+                "
+              >
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                Upload Evidence
               </Link>
             )}
             <Link
@@ -267,7 +319,7 @@ function AreaAccordionItem({ areaAssignment, isOpen, onToggle, cycleDeadline, ca
                       </td>
                       <td className="px-3 py-2.5">
                         <Link
-                          to={`/evidence/${act.id}`}
+                          to={`/evidence/activity/${act.id}`}
                           className="text-[12px] text-[#b0b0b0] hover:text-[#76ff03] transition-colors inline-flex items-center gap-1"
                         >
                           <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">

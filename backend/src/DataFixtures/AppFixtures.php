@@ -20,16 +20,21 @@ class AppFixtures extends Fixture
     {
         // ── 1. Create 10 AACCUP Areas ───────────────────────────────────────
         $areas = [
-            ['I',   'Mission, Vision, Goals and Objectives'],
-            ['II',  'Faculty'],
-            ['III', 'Curriculum and Instruction'],
-            ['IV',  'Support to Students'],
-            ['V',   'Research'],
-            ['VI',  'Extension and Community Involvement'],
-            ['VII', 'Library'],
-            ['VIII','Physical Plant and Facilities'],
-            ['IX',  'Laboratories'],
-            ['X',   'Administration'],
+            ['I',    'Mission, Vision, Goals and Objectives'],
+            ['II',   'Faculty'],
+            ['III',  'Curriculum and Instruction'],
+            ['IV',   'Support to Students'],
+            ['V',    'Research'],
+            ['VI',   'Extension and Community Involvement'],
+            ['VII',  'Library'],
+            ['VIII', 'Physical Plant and Facilities'],
+            ['IX',   'Laboratories'],
+            ['X',    'Administration'],
+            ['IV-1', 'Research'],
+            ['IV-2', 'Performance of Graduates'],
+            ['IV-3', 'Community Service'],
+            ['IV-4', 'International Linkages and Consortia'],
+            ['IV-5', 'Planning'],
         ];
 
         foreach ($areas as [$number, $name]) {
@@ -39,17 +44,17 @@ class AppFixtures extends Fixture
             $manager->persist($area);
         }
 
-        // ── 2. Create 9 Colleges ─────────────────────────────────────────────
+        // ── 2. Nine Colleges (QUAMC-confirmed list, 35 programs total) ───────
         $collegesData = [
-            ['College of Arts and Sciences', 'CAS'],
-            ['College of Nursing and Allied Health Sciences', 'CNAHS'],
-            ['College of Engineering and Architecture', 'CEA'],
-            ['College of Business and Management', 'CBM'],
-            ['College of Education', 'CED'],
-            ['College of Agriculture', 'CA'],
-            ['College of Fisheries', 'CF'],
-            ['College of Forestry and Environmental Science', 'CFES'],
-            ['College of Industrial Technology', 'CIT'],
+            ['College of Agriculture, Forestry and Fishery',           'CAFF'],   //  2 programs
+            ['College of Arts and Sciences',                           'CAS'],    // 10 programs
+            ['College of Business Administration',                     'CBA'],    //  3 programs
+            ['College of Criminal Justice Education',                  'CCJE'],   //  1 program
+            ['College of Engineering and Architecture',                'CEA'],    //  8 programs
+            ['College of Industrial Technology',                       'CIT'],    //  2 programs
+            ['College of Nursing, Pharmacy and Allied Health Sciences','CNPAHS'], //  2 programs
+            ['College of Tourism and Hospitality Management',          'CTHM'],   //  2 programs
+            ['College of Teacher Education',                           'CTE'],    //  5 programs
         ];
 
         $collegeObjects = [];
@@ -61,21 +66,60 @@ class AppFixtures extends Fixture
             $collegeObjects[$code] = $college;
         }
 
-        // ── 3. Create Programs (At least one per college) ───────────────────
+        // ── 3. All 35 Programs (QUAMC portal, in-scope only) ─────────────────
         $programsData = [
-            ['Bachelor of Science in Information Technology', 'BSIT', 'CAS', 'Level III'],
-            ['Bachelor of Science in Mathematics', 'BSMath', 'CAS', 'Level II'],
-            ['Bachelor of Science in Nursing', 'BSN', 'CNAHS', 'Level III'],
-            ['Bachelor of Science in Pharmacy', 'BSPharma', 'CNAHS', 'Level I'],
-            ['Bachelor of Science in Civil Engineering', 'BSCE', 'CEA', 'Level II'],
-            ['Bachelor of Science in Architecture', 'BSArch', 'CEA', 'Level I'],
-            ['Bachelor of Science in Business Administration', 'BSBA', 'CBM', 'Level III'],
-            ['Bachelor of Secondary Education', 'BSEd', 'CED', 'Level IV'],
-            ['Bachelor of Elementary Education', 'BEEd', 'CED', 'Level III'],
-            ['Bachelor of Science in Agriculture', 'BSA', 'CA', 'Level II'],
-            ['Bachelor of Science in Fisheries', 'BSF', 'CF', 'Level II'],
-            ['Bachelor of Science in Forestry', 'BSFor', 'CFES', 'Level I'],
-            ['Bachelor of Industrial Technology', 'BIT', 'CIT', 'Level II'],
+            // CAFF — 2 programs
+            ['BS Fishery',                                                    'BSFish',   'CAFF',   'Level II'],
+            ['BS Forestry',                                                   'BSFor',    'CAFF',   'Level II'],
+
+            // CAS — 10 programs
+            ['BA General Curriculum',                                         'BAGC',     'CAS',    'Level II'],
+            ['BS Social Science',                                             'BSSS',     'CAS',    'Level II'],
+            ['BS Biology',                                                    'BSBio',    'CAS',    'Level II'],
+            ['BS Chemistry',                                                  'BSChem',   'CAS',    'Level II'],
+            ['BS Geology',                                                    'BSGeo',    'CAS',    'Level II'],
+            ['BS Computer Science',                                           'BSCS',     'CAS',    'Level II'],
+            ['BS Information Technology',                                     'BSIT',     'CAS',    'Level III'],
+            ['BA Mass Communication',                                         'BAMC',     'CAS',    'Level III'],
+            ['BS Mathematics',                                                'BSMath',   'CAS',    'Level III'],
+            ['BS Psychology',                                                 'BSPsych',  'CAS',    'Level III'],
+
+            // CBA — 3 programs
+            ['BS Accountancy',                                                'BSAcc',    'CBA',    'Level II'],
+            ['BS Business Administration',                                    'BSBA',     'CBA',    'Level III'],
+            ['BS Office Administration',                                      'BSOA',     'CBA',    'Level III'],
+
+            // CCJE — 1 program
+            ['BS Criminology',                                                'BSCrim',   'CCJE',   'Level III'],
+
+            // CEA — 8 programs
+            ['BS Architecture',                                               'BSArch',   'CEA',    'Level II'],
+            ['BS Civil Engineering',                                          'BSCE',     'CEA',    'Level II'],
+            ['BS Computer Engineering',                                       'BSCoE',    'CEA',    'Level II'],
+            ['BS Electrical Engineering',                                     'BSEE',     'CEA',    'Level II'],
+            ['BS Electronics Engineering',                                    'BSEcE',    'CEA',    'Level II'],
+            ['BS Geodetic Engineering',                                       'BSGE',     'CEA',    'Level II'],
+            ['BS Geothermal Engineering',                                     'BSGtE',    'CEA',    'Level I'],
+            ['BS Mechanical Engineering',                                     'BSME',     'CEA',    'Level II'],
+
+            // CIT — 2 programs (BTEd is in CTE)
+            ['BS Industrial Technology',                                      'BSIT2',    'CIT',    'Level III'],
+            ['Bachelor of Technology',                                        'BT',       'CIT',    'PSV'],
+
+            // CNPAHS — 2 programs
+            ['BS Nursing',                                                    'BSN',      'CNPAHS', 'Level III'],
+            ['BS Pharmacy',                                                   'BSPharma', 'CNPAHS', 'Level II'],
+
+            // CTHM — 2 programs
+            ['BS Hospitality Management',                                     'BSHM',     'CTHM',   'Level III'],
+            ['BS Tourism Management',                                         'BSTM',     'CTHM',   'Level III'],
+
+            // CTE — 5 programs (BTEd confirmed here, not CIT)
+            ['Bachelor of Elementary Education',                              'BEEd',     'CTE',    'Level III'],
+            ['Bachelor of Secondary Education (English, Social Studies, PE)', 'BSEdA',    'CTE',    'Level III'],
+            ['Bachelor of Secondary Education (Filipino, Math, Science, Values)', 'BSEdB','CTE',    'Level I'],
+            ['Bachelor of Technology and Livelihood Education',               'BTLE',     'CTE',    'Level I'],
+            ['Bachelor of Technological Education',                           'BTEd',     'CTE',    'Level III'],
         ];
 
         $programObjects = [];
@@ -89,33 +133,41 @@ class AppFixtures extends Fixture
             $programObjects[$code] = $program;
         }
 
-        // ── 4. Create Users (Executives, Admins, IAs) ───────────────────────
+        // ── 4. Users ─────────────────────────────────────────────────────────
         $usersData = [
             // Executives & Admins
-            ['admin@norsu.edu.ph',      'Admin',    'QUAMC',     'ROLE_QUAMC_ADMIN',          null, null],
-            ['president@norsu.edu.ph',  'Roberto',  'Santos',    'ROLE_PRESIDENT',            null, null],
-            ['director@norsu.edu.ph',   'Maria',    'Reyes',     'ROLE_CAMPUS_DIRECTOR',      null, null],
-            ['vpaa@norsu.edu.ph',       'Jose',     'Dela Cruz', 'ROLE_VPAA',                 null, null],
-            
-            // Internal Accreditors (IAs)
-            ['ia1@norsu.edu.ph',        'Ana',      'Lim',       'ROLE_INTERNAL_ACCREDITOR',  null, null],
-            ['ia2@norsu.edu.ph',        'Mark',     'Bautista',  'ROLE_INTERNAL_ACCREDITOR',  null, null],
-            ['ia3@norsu.edu.ph',        'Elena',    'Guzman',    'ROLE_INTERNAL_ACCREDITOR',  null, null],
+            ['admin@norsu.edu.ph',     'Admin',   'QUAMC',     'ROLE_QUAMC_ADMIN',         null, null],
+            ['president@norsu.edu.ph', 'Roberto', 'Santos',    'ROLE_PRESIDENT',           null, null],
+            ['director@norsu.edu.ph',  'Maria',   'Reyes',     'ROLE_CAMPUS_DIRECTOR',     null, null],
+            ['vpaa@norsu.edu.ph',      'Jose',    'Dela Cruz', 'ROLE_VPAA',                null, null],
+
+            // Internal Accreditors
+            ['ia1@norsu.edu.ph', 'Ana',   'Lim',      'ROLE_INTERNAL_ACCREDITOR', null, null],
+            ['ia2@norsu.edu.ph', 'Mark',  'Bautista', 'ROLE_INTERNAL_ACCREDITOR', null, null],
+            ['ia3@norsu.edu.ph', 'Elena', 'Guzman',   'ROLE_INTERNAL_ACCREDITOR', null, null],
         ];
 
-        // ── 5. Create a Dean for EVERY College ────────────────────────────────
+        // Dean for every college
         foreach ($collegesData as [$name, $code]) {
             $usersData[] = [
-                strtolower("dean.$code@norsu.edu.ph"), 
-                'Dean', $code, 'ROLE_DEAN', $code, null
+                strtolower("dean.$code@norsu.edu.ph"),
+                'Dean', $code, 'ROLE_DEAN', $code, null,
             ];
         }
 
-        // ── 6. Create a Program Head for EVERY Program ────────────────────────
+        // Program Head for every program
         foreach ($programsData as [$name, $code, $collegeCode]) {
             $usersData[] = [
-                strtolower("ph.$code@norsu.edu.ph"), 
-                'Head', $code, 'ROLE_PROGRAM_HEAD', $collegeCode, $code
+                strtolower("ph.$code@norsu.edu.ph"),
+                'Head', $code, 'ROLE_PROGRAM_HEAD', $collegeCode, $code,
+            ];
+        }
+
+        // Area Coordinator for every college (one sample per college)
+        foreach ($collegesData as [$name, $code]) {
+            $usersData[] = [
+                strtolower("ac.$code@norsu.edu.ph"),
+                'AC', $code, 'ROLE_AREA_COORDINATOR', $code, null,
             ];
         }
 
@@ -127,14 +179,14 @@ class AppFixtures extends Fixture
             $user->setLastName($last);
             $user->setRole($role);
             $user->setPassword($this->hasher->hashPassword($user, 'Password123!'));
-            
+
             if ($collegeCode && isset($collegeObjects[$collegeCode])) {
                 $user->setCollege($collegeObjects[$collegeCode]);
             }
             if ($programCode && isset($programObjects[$programCode])) {
                 $user->setProgram($programObjects[$programCode]);
             }
-            
+
             $manager->persist($user);
         }
 

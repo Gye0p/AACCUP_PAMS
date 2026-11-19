@@ -85,7 +85,7 @@ Evidence is stored privately and can only be downloaded by a user with access to
 
 ## Internal Accreditor: Review Activities
 
-1. Open a cycle that contains an area assigned to you.
+1. Open a cycle for a program assigned to you.
 2. Expand the assigned area.
 3. Select **IA Review**.
 4. Review submitted activities.
@@ -93,7 +93,7 @@ Evidence is stored privately and can only be downloaded by a user with access to
 6. Add the area-level decision and comments.
 7. Save the review.
 
-Internal Accreditors can only review areas assigned to their account. They cannot create new activities.
+QUAMC assigns one Internal Accreditor to each program. The assigned Internal Accreditor can review all areas and activities in cycles for that program. They cannot create new activities.
 
 ## Compliance Schedule
 
@@ -107,7 +107,7 @@ Presidents, Campus Directors, VPAAs, and Deans use the Dashboard and cycle detai
 
 ## Reports And Assignments
 
-Report generation and Internal Accreditor assignment are protected backend capabilities. Dedicated frontend screens for these administrative actions are not currently included in the web interface. QUAMC administrators should use the available API or an approved administrative tool until those screens are added.
+QUAMC administrators can assign one Internal Accreditor per program from the Administration page. Report generation is also a protected backend capability.
 
 ## Troubleshooting
 

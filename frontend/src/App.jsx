@@ -33,6 +33,8 @@ function App() {
             <Route path="/activities/:id/edit" element={<ActivityFormPage />} />
             
             {/* Evidence Upload */}
+            <Route path="/evidence/activity/:activityId" element={<EvidenceUploadPage />} />
+            <Route path="/evidence/area/:areaAssignmentId" element={<EvidenceUploadPage />} />
             <Route path="/evidence/:activityId" element={<EvidenceUploadPage />} />
 
             {/* Gantt Chart */}

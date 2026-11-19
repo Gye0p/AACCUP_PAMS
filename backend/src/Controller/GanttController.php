@@ -63,14 +63,10 @@ class GanttController extends AbstractController
         }
 
         if ($this->isGranted('ROLE_INTERNAL_ACCREDITOR')) {
-            foreach ($cycle->getAreaAssignments() as $assignment) {
-                if ($this->assignmentRepository->findOneBy([
-                    'internalAccreditor' => $user,
-                    'areaAssignment' => $assignment,
-                ])) {
-                    return true;
-                }
-            }
+            return $this->assignmentRepository->findOneBy([
+                'internalAccreditor' => $user,
+                'program' => $cycle->getProgram(),
+            ]) !== null;
         }
 
         return false;

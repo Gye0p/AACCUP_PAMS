@@ -32,6 +32,7 @@ export const ROLE_LABELS = {
   ROLE_CAMPUS_DIRECTOR: 'Campus Director',
   ROLE_VPAA: 'VPAA',
   ROLE_INTERNAL_ACCREDITOR: 'Internal Accreditor',
+  ROLE_AREA_COORDINATOR: 'Area Coordinator',
   ROLE_DEAN: 'Dean',
   ROLE_PROGRAM_HEAD: 'Program Head',
 }
@@ -67,4 +68,9 @@ export const AACCUP_AREAS = [
   { number: 'VIII', name: 'Physical Plant and Facilities' },
   { number: 'IX',   name: 'Laboratories' },
   { number: 'X',    name: 'Administration' },
+  { number: 'IV-1', name: 'Research' },
+  { number: 'IV-2', name: 'Performance of Graduates' },
+  { number: 'IV-3', name: 'Community Service' },
+  { number: 'IV-4', name: 'International Linkages and Consortia' },
+  { number: 'IV-5', name: 'Planning' },
 ]

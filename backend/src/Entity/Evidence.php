@@ -21,11 +21,11 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
         new GetCollection(),
         new Get(),
         new Post(
-            security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_QUAMC_ADMIN')",
-            securityPostDenormalize: "is_granted('ROLE_QUAMC_ADMIN') or (is_granted('ROLE_PROGRAM_HEAD') and object.getActivity().getAreaAssignment().getCycle().getProgram() == user.getProgram())",
+            security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_AREA_COORDINATOR') or is_granted('ROLE_QUAMC_ADMIN')",
+            securityPostDenormalize: "is_granted('ROLE_QUAMC_ADMIN') or is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_AREA_COORDINATOR')",
             inputFormats: ['multipart' => ['multipart/form-data']],
         ),
-        new Delete(security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_QUAMC_ADMIN')"),
+        new Delete(security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_AREA_COORDINATOR') or is_granted('ROLE_QUAMC_ADMIN')"),
     ],
     normalizationContext: ['groups' => ['evidence:read']],
     denormalizationContext: ['groups' => ['evidence:write']],
@@ -38,11 +38,17 @@ class Evidence
     #[Groups(['evidence:read', 'activity:read'])]
     private ?int $id = null;
 
+    /** Activity-level evidence (optional — either this or areaAssignment must be set) */
     #[ORM\ManyToOne(targetEntity: ComplianceActivity::class, inversedBy: 'evidences')]
-    #[ORM\JoinColumn(nullable: false)]
-    #[Assert\NotNull]
+    #[ORM\JoinColumn(nullable: true)]
     #[Groups(['evidence:read', 'evidence:write'])]
     private ?ComplianceActivity $activity = null;
+
+    /** Area-level evidence (optional — either this or activity must be set) */
+    #[ORM\ManyToOne(targetEntity: AreaAssignment::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['evidence:read', 'evidence:write'])]
+    private ?AreaAssignment $areaAssignment = null;
 
     #[Vich\UploadableField(mapping: 'evidence_files', fileNameProperty: 'fileName', size: 'fileSize', mimeType: 'mimeType')]
     #[Assert\NotNull(groups: ['evidence:create'])]
@@ -92,6 +98,9 @@ class Evidence
 
     public function getActivity(): ?ComplianceActivity { return $this->activity; }
     public function setActivity(?ComplianceActivity $activity): static { $this->activity = $activity; return $this; }
+
+    public function getAreaAssignment(): ?AreaAssignment { return $this->areaAssignment; }
+    public function setAreaAssignment(?AreaAssignment $areaAssignment): static { $this->areaAssignment = $areaAssignment; return $this; }
 
     public function getFile(): ?File { return $this->file; }
     public function setFile(?File $file): static

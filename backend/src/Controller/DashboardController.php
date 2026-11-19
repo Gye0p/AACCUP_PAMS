@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\AccreditationCycleRepository;
+use App\Repository\AreaCoordinatorAssignmentRepository;
 use App\Repository\InternalAccreditorAssignmentRepository;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,8 +16,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     public function __construct(
-        private AccreditationCycleRepository $cycleRepository
-        , private InternalAccreditorAssignmentRepository $assignmentRepository
+        private AccreditationCycleRepository $cycleRepository,
+        private InternalAccreditorAssignmentRepository $assignmentRepository,
+        private AreaCoordinatorAssignmentRepository $areaCoordinatorAssignmentRepository
     ) {}
 
     public function __invoke(): JsonResponse
@@ -42,6 +44,18 @@ class DashboardController extends AbstractController
                 foreach ($cycle->getAreaAssignments() as $assignment) {
                     if ($this->assignmentRepository->findOneBy([
                         'internalAccreditor' => $user,
+                        'areaAssignment' => $assignment,
+                    ])) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        } elseif (!$canViewAll && $this->isGranted('ROLE_AREA_COORDINATOR')) {
+            $cycles = array_filter($cycles, function ($cycle) use ($user): bool {
+                foreach ($cycle->getAreaAssignments() as $assignment) {
+                    if ($this->areaCoordinatorAssignmentRepository->findOneBy([
+                        'areaCoordinator' => $user,
                         'areaAssignment' => $assignment,
                     ])) {
                         return true;

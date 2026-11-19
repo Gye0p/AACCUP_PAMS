@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { uploadEvidence } from '../api'
+import { uploadEvidence, uploadAreaEvidence } from '../api'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/useAuth'
 
 export default function EvidenceUploadPage() {
-  const { activityId } = useParams()
+  const { activityId, areaAssignmentId } = useParams()
   const navigate = useNavigate()
-  const { isProgramHead, isAdmin } = useAuth()
+  const { isProgramHead, isAdmin, isAreaCoordinator } = useAuth()
   const fileInputRef = useRef(null)
 
   const [file, setFile] = useState(null)
@@ -44,7 +44,11 @@ export default function EvidenceUploadPage() {
     setError('')
 
     try {
-      await uploadEvidence(activityId, file, originalName)
+      if (areaAssignmentId) {
+        await uploadAreaEvidence(areaAssignmentId, file, originalName)
+      } else {
+        await uploadEvidence(activityId, file, originalName)
+      }
       setMessage('Evidence uploaded successfully.')
       setFile(null)
       setOriginalName('')
@@ -56,7 +60,7 @@ export default function EvidenceUploadPage() {
     }
   }
 
-  const canUpload = isProgramHead() || isAdmin()
+  const canUpload = isProgramHead() || isAdmin() || isAreaCoordinator()
 
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return `${bytes} B`
@@ -82,7 +86,9 @@ export default function EvidenceUploadPage() {
           Upload Evidence
         </h1>
         <p className="text-[13px] text-[#8a8a8a] mt-1">
-          Compliance Activity #{activityId}
+          {areaAssignmentId
+            ? `Area Assignment #${areaAssignmentId}`
+            : `Compliance Activity #${activityId}`}
         </p>
       </div>
 
