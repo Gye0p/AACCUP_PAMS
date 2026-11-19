@@ -1,18 +1,35 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchDashboard } from '../api'
+import { fetchCycle, fetchDashboard, fetchGantt } from '../api'
 import { getUrgencyLabel, formatDate } from '../utils'
+import { useAuth } from '../context/useAuth'
 import Layout from '../components/Layout'
+import GanttChart from '../components/GanttChart'
+import { AreaAccordionItem } from './CycleDetailPage'
 
 export default function DashboardPage() {
+  const { isAdmin, isAreaCoordinator, isProgramHead } = useAuth()
+  const showDashboardGantt = isProgramHead()
   const { data: cycles, isLoading, error } = useQuery({
     queryKey: ['dashboard'],
     queryFn: fetchDashboard,
   })
+  const activeCycle = cycles?.find(cycle => cycle.status === 'active') || cycles?.[0]
+  const { data: ganttTasks, isLoading: isGanttLoading, error: ganttError } = useQuery({
+    queryKey: ['dashboard-gantt', activeCycle?.cycleId],
+    queryFn: () => fetchGantt(activeCycle.cycleId),
+    enabled: showDashboardGantt && Boolean(activeCycle?.cycleId),
+  })
+  const { data: currentCycle } = useQuery({
+    queryKey: ['dashboard-cycle', activeCycle?.cycleId],
+    queryFn: () => fetchCycle(activeCycle.cycleId),
+    enabled: showDashboardGantt && Boolean(activeCycle?.cycleId),
+  })
 
   if (isLoading) return (
     <Layout>
-      <PageHeader />
+      <PageHeader isProgramHead={showDashboardGantt} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         {[1, 2, 3].map(i => (
           <div key={i} className="bg-[#1a1a1a] border border-[#252525] rounded-md p-5 animate-pulse">
@@ -28,7 +45,7 @@ export default function DashboardPage() {
 
   if (error) return (
     <Layout>
-      <PageHeader />
+      <PageHeader isProgramHead={showDashboardGantt} />
       <div className="mt-6 bg-[#1e1212] border border-[#4a1a1a] rounded-md px-5 py-4 flex items-center gap-3">
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#f87171" strokeWidth="2">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -40,7 +57,7 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <PageHeader />
+      <PageHeader isProgramHead={showDashboardGantt} />
 
       {/* Urgency legend */}
       <div className="flex items-center gap-6 mt-4 mb-6">
@@ -52,24 +69,145 @@ export default function DashboardPage() {
       {cycles?.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cycles?.map(cycle => (
-            <CycleCard key={cycle.cycleId} cycle={cycle} />
-          ))}
-        </div>
+        <>
+          {showDashboardGantt && activeCycle && (
+            <>
+              <CurrentCyclePeriod cycle={activeCycle} />
+              <DashboardSchedule
+                cycle={activeCycle}
+                tasks={ganttTasks}
+                isLoading={isGanttLoading}
+                error={ganttError}
+              />
+              {currentCycle && (
+                <DashboardCycleDetails
+                  cycle={currentCycle}
+                  canAct={isAdmin() || isProgramHead()}
+                  canUploadAreaEvidence={isAdmin() || isAreaCoordinator()}
+                />
+              )}
+            </>
+          )}
+          {!showDashboardGantt && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cycles?.map(cycle => (
+                <CycleCard key={cycle.cycleId} cycle={cycle} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </Layout>
   )
 }
 
-function PageHeader() {
+function CurrentCyclePeriod({ cycle }) {
+  return (
+    <section className="mb-4 bg-[#1a1a1a] border border-[#252525] rounded-md px-5 py-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-[11px] font-medium text-[#6b6b6b] uppercase tracking-wider">
+            Current Cycle Period
+          </p>
+          <p className="text-[15px] font-semibold text-white mt-1">
+            AY {cycle.academicYear}
+          </p>
+        </div>
+        <div className="flex items-center gap-5">
+          <div>
+            <p className="text-[11px] text-[#6b6b6b]">Deadline</p>
+            <p className="text-[12px] text-[#c0c0c0] font-medium mt-1">{formatDate(cycle.deadline)}</p>
+          </div>
+          <StatusPill status={cycle.status} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function DashboardSchedule({ cycle, tasks, isLoading, error }) {
+  return (
+    <section className="mb-6 bg-[#1a1a1a] border border-[#252525] rounded-md overflow-hidden">
+      <div className="flex items-center justify-between gap-4 px-5 py-4 border-b border-[#252525]">
+        <div>
+          <h2 className="text-[14px] font-semibold text-white">Current Cycle Schedule</h2>
+          <p className="text-[12px] text-[#8a8a8a] mt-1">
+            {cycle.programCode} · Active accreditation activities
+          </p>
+        </div>
+        <Link
+          to={`/cycles/${cycle.cycleId}`}
+          className="flex-shrink-0 text-[12px] font-medium text-[#76ff03] hover:text-white transition-colors"
+        >
+          Open cycle details
+        </Link>
+      </div>
+      {isLoading && (
+        <div className="h-40 p-5 animate-pulse">
+          <div className="h-full bg-[#222] rounded" />
+        </div>
+      )}
+      {error && (
+        <div className="px-5 py-6 text-[13px] text-[#f87171]">
+          Failed to load the current cycle schedule.
+        </div>
+      )}
+      {!isLoading && !error && tasks?.length === 0 && (
+        <div className="px-5 py-8 text-[13px] text-[#6b6b6b]">
+          No approved or completed activities are available yet.
+        </div>
+      )}
+      {!isLoading && !error && tasks?.length > 0 && <GanttChart tasks={tasks} />}
+    </section>
+  )
+}
+
+function DashboardCycleDetails({ cycle, canAct, canUploadAreaEvidence }) {
+  const [openArea, setOpenArea] = useState(null)
+
+  return (
+    <section className="mb-6">
+      <div className="flex items-center justify-between gap-4 mb-3">
+        <h2 className="text-[13px] font-medium text-[#8a8a8a] uppercase tracking-wider">
+          AACCUP Areas — {cycle.areaAssignments?.length || 0} total
+        </h2>
+        <Link
+          to={`/cycles/${cycle.id}`}
+          className="text-[12px] font-medium text-[#76ff03] hover:text-white transition-colors"
+        >
+          Open full cycle page
+        </Link>
+      </div>
+      <div className="space-y-2">
+        {cycle.areaAssignments?.map((areaAssignment, index) => (
+          <AreaAccordionItem
+            key={areaAssignment.id}
+            areaAssignment={areaAssignment}
+            areaIndex={index}
+            cycle={cycle}
+            isOpen={openArea === areaAssignment.id}
+            onToggle={() => setOpenArea(openArea === areaAssignment.id ? null : areaAssignment.id)}
+            cycleDeadline={cycle.complianceDeadline}
+            canAct={canAct}
+            canEditActivity={canAct}
+            canUploadAreaEvidence={canUploadAreaEvidence}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function PageHeader({ isProgramHead }) {
   return (
     <div>
       <h1 className="text-xl font-semibold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
-        Accreditation Cycles
+        {isProgramHead ? 'My Accreditation Cycle' : 'Accreditation Cycles'}
       </h1>
       <p className="text-[13px] text-[#8a8a8a] mt-1">
-        Active accreditation cycles and their compliance status.
+        {isProgramHead
+          ? 'Your program accreditation cycle and compliance schedule.'
+          : 'Active accreditation cycles and their compliance status.'}
       </p>
     </div>
   )

@@ -76,6 +76,7 @@ export const fetchActivity = (id) => api.get(`/compliance_activities/${id}`).the
 export const createActivity = (data) => api.post('/compliance_activities', data)
 export const updateActivity = (id, data) =>
   api.patch(`/compliance_activities/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+export const deleteActivity = (id) => api.delete(`/compliance_activities/${id}`)
 
 // ── Evidence ──────────────────────────────────────────────────────
 export const uploadEvidence = (activityId, file, originalName) => {
@@ -120,7 +121,8 @@ export const deleteInternalAccreditorAssignment = (id) => api.delete(`/internal_
 
 // ── SAR Recommendations ───────────────────────────────────────────
 export const fetchSarRecommendations = (areaAssignmentId) =>
-  api.get(`/sar_recommendations?areaAssignment=${areaAssignmentId}`).then(r => r.data['hydra:member'])
+  api.get(`/sar_recommendations?areaAssignment=${areaAssignmentId}`)
+    .then(r => r.data['hydra:member'] || r.data.member || [])
 
 // ── Notifications ──────────────────────────────────────────────────────
 export const fetchNotifications = () =>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { downloadReport, fetchCycle } from '../api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { deleteActivity, downloadReport, fetchCycle, fetchSarRecommendations } from '../api'
 import { AACCUP_AREAS, formatDate, STATE_LABELS } from '../utils'
 import { useAuth } from '../context/useAuth'
 import Layout from '../components/Layout'
@@ -147,8 +147,26 @@ export default function CycleDetailPage() {
   )
 }
 
-function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, onToggle, cycleDeadline, canAct, canEditActivity, canUploadAreaEvidence }) {
+export function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, onToggle, cycleDeadline, canAct, canEditActivity, canUploadAreaEvidence }) {
   const aa = areaAssignment
+  const queryClient = useQueryClient()
+  const [deleteError, setDeleteError] = useState('')
+  const deleteMutation = useMutation({
+    mutationFn: deleteActivity,
+    onSuccess: () => {
+      setDeleteError('')
+      queryClient.invalidateQueries({ queryKey: ['cycle'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-cycle'] })
+    },
+    onError: (error) => {
+      setDeleteError(error.response?.data?.detail || 'The activity could not be deleted.')
+    },
+  })
+  const { data: sarRecommendations = [], isLoading: sarLoading } = useQuery({
+    queryKey: ['sar-recommendations', aa.id],
+    queryFn: () => fetchSarRecommendations(aa.id),
+    enabled: isOpen,
+  })
   const fallbackArea = AACCUP_AREAS[areaIndex]
   const areaNumber = aa.area?.areaNumber || fallbackArea?.number || String(areaIndex + 1)
   const areaName = aa.area?.name || fallbackArea?.name || 'Unnamed AACCUP Area'
@@ -233,6 +251,42 @@ function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, onToggle,
             </div>
           )}
 
+          <div className="mb-4 border border-[#252525] rounded-md bg-[#161616]">
+            <div className="px-3 py-2.5 border-b border-[#252525]">
+              <h3 className="text-[11px] font-medium text-[#8a8a8a] uppercase tracking-wide">
+                SAR Recommendations
+              </h3>
+            </div>
+            {sarLoading ? (
+              <p className="px-3 py-3 text-[12px] text-[#6b6b6b]">Loading recommendations...</p>
+            ) : sarRecommendations.length === 0 ? (
+              <p className="px-3 py-3 text-[12px] text-[#6b6b6b]">No SAR recommendations recorded for this area.</p>
+            ) : (
+              <div className="divide-y divide-[#252525]">
+                {sarRecommendations.map((recommendation) => (
+                  <div key={recommendation.id} className="px-3 py-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-[#76ff03]">
+                        {recommendation.type}
+                      </span>
+                      <span className="text-[10px] text-[#6b6b6b] uppercase">
+                        {recommendation.priority} priority
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-[#c0c0c0] leading-relaxed">
+                      {recommendation.recommendationText}
+                    </p>
+                    {recommendation.remarks && (
+                      <p className="mt-1 text-[11px] text-[#8a8a8a]">
+                        Remarks: {recommendation.remarks}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
           <div className="flex items-center gap-2 mb-4">
             {canAct && (
@@ -279,6 +333,11 @@ function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, onToggle,
               IA Review
             </Link>
           </div>
+          {deleteError && (
+            <div className="mb-4 rounded border border-[#4a1a1a] bg-[#1e1212] px-3 py-2 text-[12px] text-[#f87171]">
+              {deleteError}
+            </div>
+          )}
 
           {/* Activities table */}
           {aa.complianceActivities?.length > 0 ? (
@@ -291,6 +350,7 @@ function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, onToggle,
                     <th className="px-3 py-2.5 text-left text-[11px] font-medium text-[#6b6b6b] uppercase tracking-wide hidden sm:table-cell">End</th>
                     <th className="px-3 py-2.5 text-left text-[11px] font-medium text-[#6b6b6b] uppercase tracking-wide">State</th>
                     <th className="px-3 py-2.5 text-left text-[11px] font-medium text-[#6b6b6b] uppercase tracking-wide">Evidence</th>
+                    {canEditActivity && <th className="px-3 py-2.5 text-right text-[11px] font-medium text-[#6b6b6b] uppercase tracking-wide">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1e1e1e]">
@@ -328,6 +388,25 @@ function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, onToggle,
                           Upload
                         </Link>
                       </td>
+                      {canEditActivity && (
+                        <td className="px-3 py-2.5 text-right">
+                          {(act.state === 'draft' || act.state === 'needs_revision') && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (deleteMutation.isPending) return
+                                if (window.confirm(`Delete "${act.title}"? This cannot be undone.`)) {
+                                  deleteMutation.mutate(act.id)
+                                }
+                              }}
+                              disabled={deleteMutation.isPending}
+                              className="text-[12px] text-[#f87171] hover:text-[#ff9b9b] disabled:opacity-50"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

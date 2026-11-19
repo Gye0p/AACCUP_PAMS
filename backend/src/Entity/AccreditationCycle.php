@@ -100,9 +100,8 @@ class AccreditationCycle
     {
         $this->sarReceivedDate = $sarReceivedDate;
         // Auto-compute compliance deadline: SAR date + 1 year (locked forever)
-        $deadline = clone $sarReceivedDate;
-        $deadline->modify('+1 year');
-        $this->complianceDeadline = $deadline;
+        $this->complianceDeadline = \DateTimeImmutable::createFromInterface($sarReceivedDate)
+            ->modify('+1 year');
         return $this;
     }
 

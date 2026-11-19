@@ -25,6 +25,7 @@ export default function NotificationBell() {
     mutationFn: (id) => markNotificationRead(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unreadCount'] })
     },
   })
 

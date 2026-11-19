@@ -66,6 +66,8 @@ npm install
 npm run dev
 ```
 
+`npm run dev` now starts both the frontend and the Symfony API. It is safe to run it repeatedly; the API starts automatically on port `8080` and Vite starts on port `5173`.
+
 Open `http://127.0.0.1:5173`. Vite forwards `/api` requests to the backend at `http://127.0.0.1:8080`.
 
 ## Useful Commands

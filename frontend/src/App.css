@@ -4,24 +4,24 @@
 .form-input,
 .form-select {
   width: 100%;
-  background: #121212;
-  border: 1px solid #2e2e2e;
-  border-radius: 4px;
+  background: #fbfcff;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
   padding: 10px 12px;
   font-size: 13px;
-  color: #f5f5f5;
+  color: #18243a;
   font-family: inherit;
   transition: border-color 0.15s, box-shadow 0.15s;
   appearance: none;
   -webkit-appearance: none;
 }
 
-.form-input::placeholder { color: #4a4a4a; }
+.form-input::placeholder { color: #a7b1bf; }
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: #76ff03;
-  box-shadow: 0 0 0 2px rgba(118, 255, 3, 0.15);
+  border-color: #1768c7;
+  box-shadow: 0 0 0 3px rgba(23, 104, 199, 0.10);
 }
 
 .form-select {
@@ -33,6 +33,64 @@
 }
 
 .form-select option {
-  background: #1a1a1a;
-  color: #f5f5f5;
+  background: #ffffff;
+  color: #18243a;
+}
+
+/* Institutional theme overrides for existing page utilities */
+[class*="bg-[#121212]"],
+[class*="bg-[#161616]"],
+[class*="bg-[#1a1a1a]"],
+[class*="bg-[#1e1e1e]"],
+[class*="bg-[#222]"],
+[class*="bg-[#252525]"] {
+  background-color: #ffffff !important;
+}
+
+[class*="border-[#252525]"],
+[class*="border-[#2e2e2e]"],
+[class*="border-[#2a2a2a]"] {
+  border-color: #dbe4f0 !important;
+}
+
+[class*="text-white"],
+[class*="text-[#f5f5f5]"],
+[class*="text-[#d0d0d0]"] {
+  color: #18243a !important;
+}
+
+[class*="text-[#b0b0b0]"],
+[class*="text-[#8a8a8a]"],
+[class*="text-[#6b6b6b]"],
+[class*="text-[#4a4a4a]"] {
+  color: #718096 !important;
+}
+
+[class*="bg-[#76ff03]"],
+[class*="bg-[#76ff03]/10"] {
+  background-color: #1768c7 !important;
+}
+
+[class*="text-[#76ff03]"] {
+  color: #1768c7 !important;
+}
+
+[class*="hover:bg-[#1e1e1e]"]:hover,
+[class*="hover:bg-[#252525]"]:hover,
+[class*="hover:border-[#3a3a3a]"]:hover {
+  background-color: #edf3fb !important;
+  border-color: #b8c9df !important;
+}
+
+[class*="hover:text-white"]:hover,
+[class*="hover:text-[#d0d0d0]"]:hover {
+  color: #1768c7 !important;
+}
+
+[class*="bg-[#76ff03]"] {
+  color: #ffffff !important;
+}
+
+[class*="border-dashed"][class*="border-[#252525]"] {
+  background-color: #fbfcff !important;
 }

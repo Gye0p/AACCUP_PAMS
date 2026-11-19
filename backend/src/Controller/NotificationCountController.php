@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/notifications/unread-count', name: 'api_notifications_unread_count', methods: ['GET'])]
+#[Route('/api/notifications/unread-count', name: 'api_notifications_unread_count', methods: ['GET'], priority: 10)]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 class NotificationCountController extends AbstractController
 {

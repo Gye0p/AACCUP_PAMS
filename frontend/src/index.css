@@ -2,14 +2,14 @@
 
 /* ── Design Tokens ─────────────────────────────────────────────── */
 :root {
-  --color-bg:        #121212;
-  --color-surface:   #1e1e1e;
-  --color-border:    #2e2e2e;
-  --color-muted:     #424242;
-  --color-text-sub:  #b0b0b0;
-  --color-text:      #f5f5f5;
-  --color-accent:    #76ff03;
-  --color-accent-dim:#5bcc00;
+  --color-bg:        #f7f9ff;
+  --color-surface:   #ffffff;
+  --color-border:    #dbe4f0;
+  --color-muted:     #718096;
+  --color-text-sub:  #718096;
+  --color-text:      #18243a;
+  --color-accent:    #1768c7;
+  --color-accent-dim:#0e56ad;
 
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-head: 'Poppins', system-ui, sans-serif;
@@ -47,8 +47,8 @@ input, select, textarea {
 /* ── Scrollbar ─────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #424242; }
+::-webkit-scrollbar-thumb { background: #cbd6e5; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #aebdd0; }
 
 /* ── Focus visible ─────────────────────────────────────────────── */
 :focus-visible {

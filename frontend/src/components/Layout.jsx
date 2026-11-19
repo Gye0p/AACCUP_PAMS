@@ -19,13 +19,26 @@ export default function Layout({ children }) {
   const roleLabel = ROLE_LABELS[primaryRole] || 'User'
 
   const isActive = (path) => location.pathname === path
+  const pageTitle = isActive('/admin')
+    ? 'Administration'
+    : isActive('/dashboard')
+      ? 'Dashboard'
+      : location.pathname.startsWith('/cycles/')
+        ? 'Cycle Details'
+        : location.pathname.startsWith('/ia-review/')
+          ? 'IA Review'
+          : location.pathname.startsWith('/activities/')
+            ? 'Compliance Activity'
+            : location.pathname.startsWith('/evidence/')
+              ? 'Evidence'
+              : 'AACCUP PAMS'
 
   return (
-    <div className="flex min-h-screen bg-[#121212]">
+    <div className="flex min-h-screen bg-[#f7f9ff]">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-20 bg-[#0a2b5e]/40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -33,25 +46,21 @@ export default function Layout({ children }) {
       {/* SIDEBAR */}
       <aside
         className={`
-          fixed top-0 left-0 z-30 h-full w-60 flex flex-col
-          bg-[#161616] border-r border-[#252525]
+          fixed top-0 left-0 z-30 h-screen w-60 flex flex-col
+          bg-white border-r border-[#dbe4f0] shadow-[8px_0_30px_rgba(20,61,118,.06)]
           transform transition-transform duration-200 ease-in-out
-          lg:relative lg:translate-x-0 lg:z-auto
+          lg:sticky lg:top-0 lg:translate-x-0 lg:z-auto
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-[#252525]">
-          <div className="flex items-center justify-center w-8 h-8 bg-[#76ff03] rounded">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" fill="#121212"/>
-            </svg>
-          </div>
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#dbe4f0]">
+          <img src="/quamc-logo.png" alt="NORSU QUAMC" className="h-9 w-9 object-contain" />
           <div>
-            <div className="text-[13px] font-semibold text-white leading-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <div className="text-[13px] font-semibold text-[#18243a] leading-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
               AACCUP PAMS
             </div>
-            <div className="text-[10px] text-[#6b6b6b] uppercase tracking-wider">
+            <div className="text-[10px] text-[#718096] uppercase tracking-wider">
               Quality Assurance
             </div>
           </div>
@@ -87,17 +96,21 @@ export default function Layout({ children }) {
           )}
         </nav>
 
-        {/* User section */}
-        <div className="px-3 py-3 border-t border-[#252525]">
-          <div className="px-2 py-2.5 rounded-md">
-            <div className="text-[12px] font-medium text-[#d0d0d0] truncate mb-0.5">{user?.email}</div>
-            <div className="text-[10px] text-[#6b6b6b] uppercase tracking-wider mb-2">{roleLabel}</div>
-            <div className="mb-3">
-              <NotificationBell />
+        {/* Account section */}
+        <div className="mt-auto border-t border-[#dbe4f0] p-3">
+          <div className="rounded-xl border border-[#dbe4f0] bg-[#fbfcff] p-3">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#eaf2fc] text-[11px] font-semibold text-[#1768c7]">
+                {(user?.email || 'U').slice(0, 1).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <div className="text-[12px] font-medium text-[#263650] truncate">{user?.email}</div>
+                <div className="text-[10px] text-[#718096] uppercase tracking-wider">{roleLabel}</div>
+              </div>
             </div>
             <button
               onClick={handleLogout}
-              className="w-full text-left text-[12px] text-[#b0b0b0] hover:text-[#f5f5f5] transition-colors duration-150 flex items-center gap-2 group"
+              className="mt-3 w-full border-t border-[#dbe4f0] px-2 pt-3 text-left text-[12px] text-[#718096] hover:text-[#1768c7] transition-colors duration-150 flex items-center gap-2 group"
             >
               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75" className="flex-shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -110,21 +123,29 @@ export default function Layout({ children }) {
 
       {/* MAIN */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile top bar */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[#252525] bg-[#161616]">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-1 rounded text-[#b0b0b0] hover:text-white hover:bg-[#252525] transition-colors"
-            aria-label="Open navigation"
-          >
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-          </button>
-          <span className="text-[13px] font-semibold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            AACCUP PAMS
-          </span>
-          <NotificationBell />
+        {/* Compact header */}
+        <header className="sticky top-0 z-10 h-[72.89px] min-h-[72.89px] w-full flex flex-shrink-0 items-center justify-between px-4 lg:px-8 border-b border-[#dbe4f0] bg-white/95 backdrop-blur">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-1.5 rounded text-[#718096] hover:text-[#1768c7] hover:bg-[#edf3fb] transition-colors"
+              aria-label="Open navigation"
+            >
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+            <h1 className="truncate text-[13px] font-semibold text-[#18243a]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              {pageTitle}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <div className="hidden sm:flex h-7 items-center border-l border-[#dbe4f0] pl-3">
+              <div className="max-w-44 truncate text-[11px] text-[#718096]">{user?.email}</div>
+            </div>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto">
@@ -146,7 +167,7 @@ function NavItem({ to, label, active, icon }) {
         transition-colors duration-150
         ${active
           ? 'bg-[#76ff03]/10 text-[#76ff03]'
-          : 'text-[#8a8a8a] hover:text-[#d0d0d0] hover:bg-[#1e1e1e]'
+          : 'text-[#718096] hover:text-[#1768c7] hover:bg-[#edf3fb]'
         }
       `}
     >

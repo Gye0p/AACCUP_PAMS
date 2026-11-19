@@ -1,54 +1,15 @@
-import { useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import FrappeGantt from 'frappe-gantt'
-import '../frappe-gantt.css'
 import { fetchGantt } from '../api'
 import Layout from '../components/Layout'
+import GanttChart from '../components/GanttChart'
 
 export default function GanttPage() {
   const { id } = useParams()
-  const ganttRef = useRef(null)
-  const ganttInstanceRef = useRef(null)
-
   const { data: tasks, isLoading, error } = useQuery({
     queryKey: ['gantt', id],
     queryFn: () => fetchGantt(id)
   })
-
-  useEffect(() => {
-    if (tasks?.length > 0 && ganttRef.current) {
-      ganttInstanceRef.current = new FrappeGantt(ganttRef.current, tasks, {
-        header_height: 50,
-        column_width: 30,
-        step: 24,
-        view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
-        bar_height: 20,
-        bar_corner_radius: 2,
-        arrow_curve: 5,
-        padding: 18,
-        view_mode: 'Week',
-        date_format: 'YYYY-MM-DD',
-        custom_popup_html: function(task) {
-          return `
-            <div style="
-              padding: 10px 14px;
-              background: #1e1e1e;
-              border: 1px solid #2e2e2e;
-              border-radius: 4px;
-              min-width: 160px;
-            ">
-              <div style="font-size: 12px; font-weight: 600; color: #f5f5f5; margin-bottom: 4px;">${task.name}</div>
-              <div style="font-size: 11px; color: #8a8a8a;">Progress: <span style="color: #76ff03;">${task.progress}%</span></div>
-            </div>
-          `
-        }
-      })
-    }
-    return () => {
-      ganttInstanceRef.current = null
-    }
-  }, [tasks])
 
   return (
     <Layout>
@@ -108,9 +69,7 @@ export default function GanttPage() {
 
       {!isLoading && tasks?.length > 0 && (
         <div className="bg-[#1a1a1a] border border-[#252525] rounded-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <svg ref={ganttRef} style={{ minWidth: '100%' }} />
-          </div>
+          <GanttChart tasks={tasks} />
         </div>
       )}
     </Layout>

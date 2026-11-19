@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\AccreditationCycleRepository;
 use App\Repository\AreaCoordinatorAssignmentRepository;
 use App\Repository\InternalAccreditorAssignmentRepository;
+use App\Entity\AccreditationCycle;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,7 +29,7 @@ class DashboardController extends AbstractController
             return $this->json([]);
         }
 
-        $cycles = $this->cycleRepository->findAll();
+        $cycles = $this->cycleRepository->findBy(['status' => AccreditationCycle::STATUS_ACTIVE]);
         
         $canViewAll = $this->isGranted('ROLE_QUAMC_ADMIN')
             || $this->isGranted('ROLE_PRESIDENT')

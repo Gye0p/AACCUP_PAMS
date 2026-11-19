@@ -28,7 +28,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             security: "is_granted('ROLE_PROGRAM_HEAD') or is_granted('ROLE_QUAMC_ADMIN') or is_granted('ROLE_INTERNAL_ACCREDITOR')",
             securityPostDenormalize: "is_granted('ROLE_QUAMC_ADMIN') or (is_granted('ROLE_PROGRAM_HEAD') and object.getAreaAssignment().getCycle().getProgram() == user.getProgram()) or is_granted('ROLE_INTERNAL_ACCREDITOR')",
         ),
-        new Delete(security: "is_granted('ROLE_QUAMC_ADMIN')"),
+        new Delete(security: "is_granted('ROLE_QUAMC_ADMIN') or is_granted('ROLE_PROGRAM_HEAD')"),
     ],
     normalizationContext: ['groups' => ['activity:read']],
     denormalizationContext: ['groups' => ['activity:write']],
@@ -45,7 +45,7 @@ class ComplianceActivity
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['activity:read', 'assignment:read', 'evidence:read'])]
+    #[Groups(['activity:read', 'assignment:read', 'cycle:read', 'evidence:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: AreaAssignment::class, inversedBy: 'complianceActivities')]
@@ -56,25 +56,25 @@ class ComplianceActivity
 
     #[ORM\Column(length: 300)]
     #[Assert\NotBlank]
-    #[Groups(['activity:read', 'activity:write'])]
+    #[Groups(['activity:read', 'cycle:read', 'activity:write'])]
     private ?string $title = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['activity:read', 'activity:write'])]
+    #[Groups(['activity:read', 'cycle:read', 'activity:write'])]
     private ?string $description = null;
 
     #[ORM\Column(type: 'date')]
     #[Assert\NotNull]
-    #[Groups(['activity:read', 'activity:write'])]
+    #[Groups(['activity:read', 'cycle:read', 'activity:write'])]
     private ?\DateTimeInterface $startDate = null;
 
     #[ORM\Column(type: 'date')]
     #[Assert\NotNull]
-    #[Groups(['activity:read', 'activity:write'])]
+    #[Groups(['activity:read', 'cycle:read', 'activity:write'])]
     private ?\DateTimeInterface $endDate = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['activity:read'])]
+    #[Groups(['activity:read', 'cycle:read'])]
     private string $state = self::STATE_DRAFT;
 
     /** Transition to apply: submit | start_review | request_revision | approve | complete */
@@ -82,7 +82,7 @@ class ComplianceActivity
     private ?string $transition = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['activity:read', 'activity:write'])]
+    #[Groups(['activity:read', 'cycle:read', 'activity:write'])]
     private ?string $iaComments = null;
 
     #[ORM\OneToMany(targetEntity: Evidence::class, mappedBy: 'activity', cascade: ['remove'])]

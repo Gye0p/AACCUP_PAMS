@@ -44,8 +44,9 @@ class AppFixtures extends Fixture
             $manager->persist($area);
         }
 
-        // ── 2. Nine Colleges (QUAMC-confirmed list, 35 programs total) ───────
+        // ── 2. Universities / Campuses (QUAMC-confirmed list, 58 programs) ──
         $collegesData = [
+            ['Graduate School',                                         'GS'],      // 23 programs
             ['College of Agriculture, Forestry and Fishery',           'CAFF'],   //  2 programs
             ['College of Arts and Sciences',                           'CAS'],    // 10 programs
             ['College of Business Administration',                     'CBA'],    //  3 programs
@@ -66,69 +67,97 @@ class AppFixtures extends Fixture
             $collegeObjects[$code] = $college;
         }
 
-        // ── 3. All 35 Programs (QUAMC portal, in-scope only) ─────────────────
+        // ── 3. All 58 Programs (QUAMC portal, undergraduate and graduate) ───
         $programsData = [
+            // Graduate School — 23 programs
+            ['Doctor of Educational Management', 'DEDUM', 'GS', 'Level III', '2026-10-31'],
+            ['Doctor of Education (Science Education, Technology Management)', 'DEDSciTech', 'GS', 'Level I', '2027-06-30'],
+            ['Doctor of Management (Human Resource Management, Public Administration)', 'DMMgmt', 'GS', 'Level III', '2025-07-31'],
+            ['Doctor of Philosophy (Educational Management)', 'PHDedMgt', 'GS', 'Level I', '2027-06-30'],
+            ['Doctor of Philosophy in Mathematics', 'PHDMath', 'GS', 'Level II', '2028-08-15'],
+            ['Master of Public Health', 'MPH', 'GS', 'Level II', '2026-08-31'],
+            ['Master of Arts in Early Childhood Education', 'MAECE', 'GS', 'Level I', '2026-12-15'],
+            ['Master in Technological Education (Majors: Automotive Technology, Electrical Technology, Electronics Technology, Mechanical Technology, Industrial Graphics Technology, Civil Technology)', 'MTE', 'GS', 'Level II', '2026-08-31'],
+            ['Ph.D. in English Language Teaching', 'PHDelt', 'GS', 'PSV', null],
+            ['Doctor of Education Major in Filipino', 'DEDFil', 'GS', 'PSV', null],
+            ['Doctor of Education Major in Instruction', 'DEDInstr', 'GS', 'PSV', null],
+            ['MS in Agriculture (Majors: Agronomy, Animal Science)', 'MSAgri', 'GS', 'Level I', '2021-12-15'],
+            ['MA in Psychology', 'MAPsych', 'GS', 'Level II', '2028-10-31'],
+            ['MA in Physical Education', 'MAPE', 'GS', 'Level II', '2028-12-15'],
+            ['Master in Business Administration', 'MBA', 'GS', 'Level I', '2027-06-30'],
+            ['Ph.D. in Mathematics', 'PHDMATH2', 'GS', 'Level II', '2028-06-15'],
+            ['MS in Information Technology', 'MSIT', 'GS', 'Level II', '2027-06-15'],
+            ['Master of Arts (Majors: Filipino, History, Science Teaching, Vocational Education, Special Education)', 'MA', 'GS', 'Level III', '2028-08-15'],
+            ['Master of Science in Mathematics', 'MSMath', 'GS', 'Level II', '2025-09-30'],
+            ['MA in Mathematics Teaching', 'MAMathTeach', 'GS', 'Level II', '2025-09-30'],
+            ['Master of Arts in Education Major in English', 'MAEng', 'GS', 'Level II', null],
+            ['Master in Public Management', 'MPM', 'GS', 'Level III', '2024-10-31'],
+            ['Master of Public Administration', 'MPA', 'GS', 'Level III', '2026-10-31'],
+
             // CAFF — 2 programs
-            ['BS Fishery',                                                    'BSFish',   'CAFF',   'Level II'],
-            ['BS Forestry',                                                   'BSFor',    'CAFF',   'Level II'],
+            ['Bachelor of Science in Fishery',                                'BSFish',   'CAFF',   'Level II', '2026-08-31'],
+            ['Bachelor of Science in Forestry',                               'BSFor',    'CAFF',   'Level II', '2027-08-31'],
 
             // CAS — 10 programs
-            ['BA General Curriculum',                                         'BAGC',     'CAS',    'Level II'],
-            ['BS Social Science',                                             'BSSS',     'CAS',    'Level II'],
-            ['BS Biology',                                                    'BSBio',    'CAS',    'Level II'],
-            ['BS Chemistry',                                                  'BSChem',   'CAS',    'Level II'],
-            ['BS Geology',                                                    'BSGeo',    'CAS',    'Level II'],
-            ['BS Computer Science',                                           'BSCS',     'CAS',    'Level II'],
-            ['BS Information Technology',                                     'BSIT',     'CAS',    'Level III'],
-            ['BA Mass Communication',                                         'BAMC',     'CAS',    'Level III'],
-            ['BS Mathematics',                                                'BSMath',   'CAS',    'Level III'],
-            ['BS Psychology',                                                 'BSPsych',  'CAS',    'Level III'],
+            ['Bachelor of Arts in General Curriculum', 'BAGC', 'CAS', 'Level II', '2026-08-31'],
+            ['BS in Social Science', 'BSSS', 'CAS', 'Level II', '2018-12-31'],
+            ['Bachelor of Science in Biology', 'BSBio', 'CAS', 'Level II', '2027-08-31'],
+            ['Bachelor of Science in Chemistry', 'BSChem', 'CAS', 'Level II', '2025-12-15'],
+            ['Bachelor of Science in Geology', 'BSGeo', 'CAS', 'Level II', '2025-01-31'],
+            ['Bachelor of Science in Computer Science', 'BSCS', 'CAS', 'Level II', '2026-08-31'],
+            ['Bachelor of Science in Information Technology', 'BSIT', 'CAS', 'Level III', '2029-03-15'],
+            ['Bachelor of Arts in Mass Communication', 'BAMC', 'CAS', 'Level III', '2028-02-15'],
+            ['Bachelor of Science in Mathematics', 'BSMath', 'CAS', 'Level III', '2026-10-31'],
+            ['Bachelor of Science in Psychology', 'BSPsych', 'CAS', 'Level III', '2028-12-15'],
 
             // CBA — 3 programs
-            ['BS Accountancy',                                                'BSAcc',    'CBA',    'Level II'],
-            ['BS Business Administration',                                    'BSBA',     'CBA',    'Level III'],
-            ['BS Office Administration',                                      'BSOA',     'CBA',    'Level III'],
+            ['Bachelor of Science in Accountancy', 'BSAcc', 'CBA', 'Level II', '2026-08-31'],
+            ['Bachelor of Science in Business Administration', 'BSBA', 'CBA', 'Level III', '2029-02-28'],
+            ['Bachelor of Science in Office Administration', 'BSOA', 'CBA', 'Level III', '2027-02-16'],
 
             // CCJE — 1 program
-            ['BS Criminology',                                                'BSCrim',   'CCJE',   'Level III'],
+            ['Bachelor of Science in Criminology', 'BSCrim', 'CCJE', 'Level III', '2026-10-31'],
 
             // CEA — 8 programs
-            ['BS Architecture',                                               'BSArch',   'CEA',    'Level II'],
-            ['BS Civil Engineering',                                          'BSCE',     'CEA',    'Level II'],
-            ['BS Computer Engineering',                                       'BSCoE',    'CEA',    'Level II'],
-            ['BS Electrical Engineering',                                     'BSEE',     'CEA',    'Level II'],
-            ['BS Electronics Engineering',                                    'BSEcE',    'CEA',    'Level II'],
-            ['BS Geodetic Engineering',                                       'BSGE',     'CEA',    'Level II'],
-            ['BS Geothermal Engineering',                                     'BSGtE',    'CEA',    'Level I'],
-            ['BS Mechanical Engineering',                                     'BSME',     'CEA',    'Level II'],
+            ['Bachelor of Science in Architecture', 'BSArch', 'CEA', 'Level II', '2026-12-31'],
+            ['Bachelor of Science in Civil Engineering', 'BSCE', 'CEA', 'Level II', '2027-10-31'],
+            ['Bachelor of Science in Computer Engineering', 'BSCoE', 'CEA', 'Level II', '2026-12-31'],
+            ['Bachelor of Science in Electrical Engineering', 'BSEE', 'CEA', 'Level II', '2025-11-15'],
+            ['Bachelor of Science in Electronics Engineering', 'BSEcE', 'CEA', 'Level II', '2027-10-31'],
+            ['Bachelor of Science in Geoditic Engineering', 'BSGE', 'CEA', 'Level II', '2026-12-31'],
+            ['Bachelor of Science in Geothermal Engineering', 'BSGtE', 'CEA', 'Level I', '2026-08-31'],
+            ['Bachelor of Science in Mechanical Engineering', 'BSME', 'CEA', 'Level II', '2027-10-31'],
 
-            // CIT — 2 programs (BTEd is in CTE)
-            ['BS Industrial Technology',                                      'BSIT2',    'CIT',    'Level III'],
-            ['Bachelor of Technology',                                        'BT',       'CIT',    'PSV'],
+            // CIT — 2 programs
+            ['Bachelor of Science in Industrial Technology', 'BSIT2', 'CIT', 'Level III', '2026-10-31'],
+            ['Bachelor of Technology', 'BT', 'CIT', 'PSV', '2019-12-31'],
 
             // CNPAHS — 2 programs
-            ['BS Nursing',                                                    'BSN',      'CNPAHS', 'Level III'],
-            ['BS Pharmacy',                                                   'BSPharma', 'CNPAHS', 'Level II'],
+            ['Bachelor of Science in Nursing', 'BSN', 'CNPAHS', 'Level III', '2027-09-15'],
+            ['Bachelor of Science in Pharmacy', 'BSPharma', 'CNPAHS', 'Level II', '2026-08-31'],
 
             // CTHM — 2 programs
-            ['BS Hospitality Management',                                     'BSHM',     'CTHM',   'Level III'],
-            ['BS Tourism Management',                                         'BSTM',     'CTHM',   'Level III'],
+            ['Bachelor of Science in Hospitality Management', 'BSHM', 'CTHM', 'Level III', '2027-02-15'],
+            ['Bachelor of Science in Tourism Management', 'BSTM', 'CTHM', 'Level III', '2028-12-15'],
 
-            // CTE — 5 programs (BTEd confirmed here, not CIT)
-            ['Bachelor of Elementary Education',                              'BEEd',     'CTE',    'Level III'],
-            ['Bachelor of Secondary Education (English, Social Studies, PE)', 'BSEdA',    'CTE',    'Level III'],
-            ['Bachelor of Secondary Education (Filipino, Math, Science, Values)', 'BSEdB','CTE',    'Level I'],
-            ['Bachelor of Technology and Livelihood Education',               'BTLE',     'CTE',    'Level I'],
-            ['Bachelor of Technological Education',                           'BTEd',     'CTE',    'Level III'],
+            // CTE — 5 programs
+            ['Bachelor of Elementary Education', 'BEEd', 'CTE', 'Level III', '2029-09-30'],
+            ['Bachelor of Secondary Education (English, Social Studies, PE)', 'BSEdA', 'CTE', 'Level III', '2026-01-15'],
+            ['Bachelor of Secondary Education (Filipino, Mathematics, Science, Values)', 'BSEdB', 'CTE', 'Level I', '2027-12-15'],
+            ['Bachelor of Technology and Livelihood Education', 'BTLE', 'CTE', 'Level I', '2027-12-15'],
+            ['Bachelor of Technological Education', 'BTEd', 'CTE', 'Level III', '2026-12-31'],
         ];
 
         $programObjects = [];
-        foreach ($programsData as [$name, $code, $collegeCode, $level]) {
+        foreach ($programsData as [$name, $code, $collegeCode, $level, $validityEnd]) {
             $program = new Program();
             $program->setName($name);
             $program->setCode($code);
             $program->setCollege($collegeObjects[$collegeCode]);
             $program->setAccreditationLevel($level);
+            if ($validityEnd) {
+                $program->setValidityEnd(new \DateTimeImmutable($validityEnd));
+            }
             $manager->persist($program);
             $programObjects[$code] = $program;
         }

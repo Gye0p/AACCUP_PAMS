@@ -57,7 +57,7 @@ class AreaAssignment
     private ?string $iaComments = null;
 
     #[ORM\OneToMany(targetEntity: ComplianceActivity::class, mappedBy: 'areaAssignment')]
-    #[Groups(['assignment:read'])]
+    #[Groups(['assignment:read', 'cycle:read'])]
     private Collection $complianceActivities;
 
     #[ORM\OneToMany(targetEntity: SarRecommendation::class, mappedBy: 'areaAssignment')]
