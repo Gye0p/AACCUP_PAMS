@@ -28,6 +28,8 @@ export default function IAReviewPage() {
     mutationFn: () => submitIaReview(id, { iaStatus: effectiveIaStatus, iaComments: effectiveIaComments }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['area-assignment', id] })
+      qc.invalidateQueries({ queryKey: ['cycle'] })
+      qc.invalidateQueries({ queryKey: ['dashboard-cycle'] })
       setReviewSuccess(true)
       setTimeout(() => setReviewSuccess(false), 5000)
     }

@@ -33,7 +33,6 @@ export default function AdminPage() {
     program: '',
     academicYear: '',
     sarReceivedDate: '',
-    accreditationLevel: '',
     programType: '',
     optionalAreaIds: [],
   })
@@ -44,7 +43,7 @@ export default function AdminPage() {
     mutationFn: createCycle,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-cycles'] })
-      setForm({ program: '', academicYear: '', sarReceivedDate: '', accreditationLevel: '', programType: '', optionalAreaIds: [] })
+      setForm({ program: '', academicYear: '', sarReceivedDate: '', programType: '', optionalAreaIds: [] })
       setFormError('')
       setSuccessMsg('Cycle launched successfully. Its accreditation areas were generated.')
       setTimeout(() => setSuccessMsg(''), 5000)
@@ -57,7 +56,9 @@ export default function AdminPage() {
   const handleSubmit = (e) => {
     e.preventDefault()
     setFormError('')
-    if (form.accreditationLevel === 'Level III') {
+    const selectedProgram = programs?.find(program => program['@id'] === form.program)
+    const accreditationLevel = selectedProgram?.accreditationLevel
+    if (accreditationLevel === 'Level III') {
       if (!form.programType) {
         setFormError('Select whether this is an undergraduate or graduate program.')
         return
@@ -71,15 +72,16 @@ export default function AdminPage() {
       program: form.program,
       academicYear: form.academicYear,
       sarReceivedDate: new Date(form.sarReceivedDate).toISOString(),
-      accreditationLevel: form.accreditationLevel,
-      programType: form.accreditationLevel === 'Level III' ? form.programType : null,
-      optionalAreaIds: form.accreditationLevel === 'Level III' ? form.optionalAreaIds : null,
+      programType: accreditationLevel === 'Level III' ? form.programType : null,
+      optionalAreaIds: accreditationLevel === 'Level III' ? form.optionalAreaIds : null,
     })
   }
 
   const standardAreas = areas.filter(area =>
     ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'].includes(area.areaNumber)
   )
+  const selectedProgram = programs?.find(program => program['@id'] === form.program)
+  const accreditationLevel = selectedProgram?.accreditationLevel
   const level3MandatoryNumbers = form.programType === 'graduate' ? ['III', 'VI'] : ['III', 'V']
   const optionalAreas = standardAreas.filter(area =>
     !level3MandatoryNumbers.includes(area.areaNumber)
@@ -136,7 +138,12 @@ export default function AdminPage() {
               <FormField label="Program" required>
                 <select
                   value={form.program}
-                  onChange={e => setForm(f => ({ ...f, program: e.target.value }))}
+                  onChange={e => setForm(f => ({
+                    ...f,
+                    program: e.target.value,
+                    programType: '',
+                    optionalAreaIds: [],
+                  }))}
                   required
                   className="form-select"
                 >
@@ -147,27 +154,13 @@ export default function AdminPage() {
                 </select>
               </FormField>
 
-              <FormField label="Accreditation Level" required>
-                <select
-                  value={form.accreditationLevel}
-                  onChange={e => setForm(f => ({
-                    ...f,
-                    accreditationLevel: e.target.value,
-                    programType: '',
-                    optionalAreaIds: [],
-                  }))}
-                  required
-                  className="form-select"
-                >
-                  <option value="">Select accreditation level</option>
-                  <option value="Level I">Level I — 10 areas</option>
-                  <option value="Level II">Level II — 10 areas</option>
-                  <option value="Level III">Level III — mandatory and 2 optional areas</option>
-                  <option value="Level IV">Level IV — 5 mandatory areas</option>
-                </select>
+              <FormField label="Current Accreditation Level">
+                <div className="form-input text-[#b0b0b0]">
+                  {accreditationLevel || 'Select a program first'}
+                </div>
               </FormField>
 
-              {form.accreditationLevel === 'Level III' && (
+              {accreditationLevel === 'Level III' && (
                 <>
                   <FormField label="Program Type" required>
                     <select

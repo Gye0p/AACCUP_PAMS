@@ -152,8 +152,12 @@ class DataScopeExtension implements QueryCollectionExtensionInterface, QueryItem
         // --- INTERNAL ACCREDITOR SCOPE ---
         if ($this->security->isGranted('ROLE_INTERNAL_ACCREDITOR')) {
             if (AccreditationCycle::class === $resourceClass) {
-                $queryBuilder->join(sprintf('%s.areaAssignments', $rootAlias), 'aa_cycle_ia');
-                $queryBuilder->join('App\Entity\InternalAccreditorAssignment', 'iaa_cycle', 'WITH', 'iaa_cycle.areaAssignment = aa_cycle_ia.id');
+                $queryBuilder->join(
+                    'App\Entity\InternalAccreditorAssignment',
+                    'iaa_cycle',
+                    'WITH',
+                    'iaa_cycle.program = ' . $rootAlias . '.program'
+                );
                 $queryBuilder->andWhere('iaa_cycle.internalAccreditor = :userId');
                 $queryBuilder->setParameter('userId', $user->getId());
             } elseif (AreaAssignment::class === $resourceClass) {

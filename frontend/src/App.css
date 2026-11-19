@@ -1,5 +1,14 @@
 /* App.css — reserved for component-level overrides not handled by Tailwind */
 
+.app-main-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-main-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 /* Reusable form control baseline used across Admin and other forms */
 .form-input,
 .form-select {

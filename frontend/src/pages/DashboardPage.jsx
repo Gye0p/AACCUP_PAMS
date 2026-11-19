@@ -84,6 +84,7 @@ export default function DashboardPage() {
                   cycle={currentCycle}
                   canAct={isAdmin() || isProgramHead()}
                   canUploadAreaEvidence={isAdmin() || isAreaCoordinator()}
+                  canManageSarRecommendations={isAdmin()}
                 />
               )}
             </>
@@ -116,13 +117,31 @@ function CurrentCyclePeriod({ cycle }) {
         <div className="flex items-center gap-5">
           <div>
             <p className="text-[11px] text-[#6b6b6b]">Deadline</p>
-            <p className="text-[12px] text-[#c0c0c0] font-medium mt-1">{formatDate(cycle.deadline)}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span
+                className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                style={{ background: getUrgencyColor(cycle.urgency) }}
+                aria-hidden="true"
+              />
+              <p className="text-[12px] text-[#c0c0c0] font-medium">{formatDate(cycle.deadline)}</p>
+            </div>
+            <p className="text-[10px] mt-1" style={{ color: getUrgencyColor(cycle.urgency) }}>
+              {getUrgencyLabel(cycle.daysRemaining)}
+            </p>
           </div>
           <StatusPill status={cycle.status} />
         </div>
       </div>
     </section>
   )
+}
+
+function getUrgencyColor(urgency) {
+  return {
+    green: '#76ff03',
+    amber: '#f59e0b',
+    red: '#ef4444',
+  }[urgency] || '#76ff03'
 }
 
 function DashboardSchedule({ cycle, tasks, isLoading, error }) {
@@ -162,7 +181,7 @@ function DashboardSchedule({ cycle, tasks, isLoading, error }) {
   )
 }
 
-function DashboardCycleDetails({ cycle, canAct, canUploadAreaEvidence }) {
+function DashboardCycleDetails({ cycle, canAct, canUploadAreaEvidence, canManageSarRecommendations }) {
   const [openArea, setOpenArea] = useState(null)
 
   return (
@@ -191,6 +210,7 @@ function DashboardCycleDetails({ cycle, canAct, canUploadAreaEvidence }) {
             canAct={canAct}
             canEditActivity={canAct}
             canUploadAreaEvidence={canUploadAreaEvidence}
+            canManageSarRecommendations={canManageSarRecommendations}
           />
         ))}
       </div>

@@ -44,6 +44,11 @@ class AreaAssignmentProcessor implements ProcessorInterface
             if ($allApproved && $cycle->getStatus() !== AccreditationCycle::STATUS_COMPLETED) {
                 $cycle->setStatus(AccreditationCycle::STATUS_COMPLETED);
                 $this->entityManager->persist($cycle);
+
+                $program = $cycle->getProgram();
+                if ($program !== null && $program->advanceAccreditationLevel()) {
+                    $this->entityManager->persist($program);
+                }
             }
 
             // If area just became approved, notify Area Coordinators and Program Head

@@ -49,7 +49,7 @@ class AreaAssignment
     private ?AaccupArea $area = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['assignment:read', 'ia_review:write'])]
+    #[Groups(['assignment:read', 'cycle:read', 'ia_review:write'])]
     private string $iaStatus = self::IA_STATUS_PENDING;
 
     #[ORM\Column(type: 'text', nullable: true)]

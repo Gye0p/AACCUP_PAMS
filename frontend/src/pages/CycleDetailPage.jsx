@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { deleteActivity, downloadReport, fetchCycle, fetchSarRecommendations } from '../api'
+import { createSarRecommendation, deleteActivity, downloadReport, fetchCycle, fetchSarRecommendations } from '../api'
 import { AACCUP_AREAS, formatDate, STATE_LABELS } from '../utils'
 import { useAuth } from '../context/useAuth'
 import Layout from '../components/Layout'
@@ -140,6 +140,7 @@ export default function CycleDetailPage() {
             canAct={isAdmin() || isProgramHead()}
             canEditActivity={isAdmin() || isProgramHead()}
             canUploadAreaEvidence={isAreaCoordinator() || isAdmin()}
+            canManageSarRecommendations={isAdmin()}
           />
         ))}
       </div>
@@ -147,7 +148,7 @@ export default function CycleDetailPage() {
   )
 }
 
-export function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, onToggle, cycleDeadline, canAct, canEditActivity, canUploadAreaEvidence }) {
+export function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, onToggle, cycleDeadline, canAct, canEditActivity, canUploadAreaEvidence, canManageSarRecommendations = false }) {
   const aa = areaAssignment
   const queryClient = useQueryClient()
   const [deleteError, setDeleteError] = useState('')
@@ -167,6 +168,43 @@ export function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, on
     queryFn: () => fetchSarRecommendations(aa.id),
     enabled: isOpen,
   })
+  const [showSarForm, setShowSarForm] = useState(false)
+  const [sarText, setSarText] = useState('')
+  const [sarType, setSarType] = useState('mandatory')
+  const [sarPriority, setSarPriority] = useState('medium')
+  const [sarError, setSarError] = useState('')
+
+  const createSarMutation = useMutation({
+    mutationFn: createSarRecommendation,
+    onSuccess: () => {
+      setSarText('')
+      setSarType('mandatory')
+      setSarPriority('medium')
+      setSarError('')
+      setShowSarForm(false)
+      queryClient.invalidateQueries({ queryKey: ['sar-recommendations', aa.id] })
+      queryClient.invalidateQueries({ queryKey: ['cycle'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-cycle'] })
+    },
+    onError: (error) => {
+      setSarError(error.response?.data?.detail || 'The SAR recommendation could not be added.')
+    },
+  })
+
+  const handleCreateSar = (event) => {
+    event.preventDefault()
+    setSarError('')
+    if (!sarText.trim()) {
+      setSarError('Enter a SAR recommendation.')
+      return
+    }
+    createSarMutation.mutate({
+      areaAssignment: aa['@id'] || `/api/area_assignments/${aa.id}`,
+      recommendationText: sarText.trim(),
+      type: sarType,
+      priority: sarPriority,
+    })
+  }
   const fallbackArea = AACCUP_AREAS[areaIndex]
   const areaNumber = aa.area?.areaNumber || fallbackArea?.number || String(areaIndex + 1)
   const areaName = aa.area?.name || fallbackArea?.name || 'Unnamed AACCUP Area'
@@ -252,11 +290,70 @@ export function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, on
           )}
 
           <div className="mb-4 border border-[#252525] rounded-md bg-[#161616]">
-            <div className="px-3 py-2.5 border-b border-[#252525]">
+            <div className="px-3 py-2.5 border-b border-[#252525] flex items-center justify-between gap-3">
               <h3 className="text-[11px] font-medium text-[#8a8a8a] uppercase tracking-wide">
                 SAR Recommendations
               </h3>
+              {canManageSarRecommendations && (
+                <button
+                  type="button"
+                  onClick={() => setShowSarForm(value => !value)}
+                  className="text-[11px] font-medium text-[#76ff03] hover:text-[#a3ff68]"
+                >
+                  {showSarForm ? 'Cancel' : '+ Add Recommendation'}
+                </button>
+              )}
             </div>
+            {showSarForm && canManageSarRecommendations && (
+              <form onSubmit={handleCreateSar} className="px-3 py-3 border-b border-[#252525] space-y-3">
+                {sarError && (
+                  <div className="rounded border border-[#4a1a1a] bg-[#1e1212] px-3 py-2 text-[12px] text-[#f87171]">
+                    {sarError}
+                  </div>
+                )}
+                <div>
+                  <label className="block text-[11px] font-medium text-[#8a8a8a] mb-1.5">
+                    Recommendation
+                  </label>
+                  <textarea
+                    value={sarText}
+                    onChange={event => setSarText(event.target.value)}
+                    rows={3}
+                    required
+                    className="form-input resize-y"
+                    placeholder="Enter the SAR recommendation..."
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#8a8a8a] mb-1.5">
+                      Type
+                    </label>
+                    <select value={sarType} onChange={event => setSarType(event.target.value)} className="form-select">
+                      <option value="mandatory">Mandatory</option>
+                      <option value="enhancement">Enhancement</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#8a8a8a] mb-1.5">
+                      Priority
+                    </label>
+                    <select value={sarPriority} onChange={event => setSarPriority(event.target.value)} className="form-select">
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={createSarMutation.isPending}
+                  className="text-[12px] font-medium bg-[#76ff03] hover:bg-[#65e000] text-[#121212] px-3 py-1.5 rounded disabled:opacity-50"
+                >
+                  {createSarMutation.isPending ? 'Adding...' : 'Add Recommendation'}
+                </button>
+              </form>
+            )}
             {sarLoading ? (
               <p className="px-3 py-3 text-[12px] text-[#6b6b6b]">Loading recommendations...</p>
             ) : sarRecommendations.length === 0 ? (

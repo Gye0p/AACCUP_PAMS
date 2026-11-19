@@ -34,7 +34,7 @@ export default function Layout({ children }) {
               : 'AACCUP PAMS'
 
   return (
-    <div className="flex min-h-screen bg-[#f7f9ff]">
+    <div className="flex h-screen overflow-hidden bg-[#f7f9ff]">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -124,7 +124,7 @@ export default function Layout({ children }) {
       {/* MAIN */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Compact header */}
-        <header className="sticky top-0 z-10 h-[72.89px] min-h-[72.89px] w-full flex flex-shrink-0 items-center justify-between px-4 lg:px-8 border-b border-[#dbe4f0] bg-white/95 backdrop-blur">
+        <header className="sticky top-0 z-10 h-[68.8px] min-h-[68.8px] w-full flex flex-shrink-0 items-center justify-between px-4 lg:px-8 border-b border-[#dbe4f0] bg-white/95 backdrop-blur">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -148,7 +148,7 @@ export default function Layout({ children }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="app-main-scroll flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto px-6 py-8 lg:px-8">
             {children}
           </div>

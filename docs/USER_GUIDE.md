@@ -2,6 +2,9 @@
 
 This guide explains how each AACCUP PAMS user role uses the system to monitor accreditation compliance.
 
+For a guided presentation where teammates demonstrate the complete workflow,
+see the [AACCUP PAMS Team Demo Guide](TEAM_DEMO_GUIDE.md).
+
 ## Getting Started
 
 1. Open the AACCUP PAMS web address supplied by your administrator.

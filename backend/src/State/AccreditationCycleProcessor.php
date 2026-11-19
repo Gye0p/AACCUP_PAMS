@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\AccreditationCycle;
 use App\Entity\AreaAssignment;
+use App\Entity\Program;
 use App\Entity\AreaCoordinatorAssignment;
 use App\Entity\Notification;
 use App\Entity\User;
@@ -36,10 +37,12 @@ class AccreditationCycleProcessor implements ProcessorInterface
         $isNew = $data instanceof AccreditationCycle && !$data->getId();
 
         if ($isNew && $data instanceof AccreditationCycle) {
-            $level = $data->getAccreditationLevel();
-            if (!in_array($level, ['Level I', 'Level II', 'Level III', 'Level IV'], true)) {
-                throw new UnprocessableEntityHttpException('Select a valid accreditation level.');
+            $program = $data->getProgram();
+            $level = $program?->getAccreditationLevel();
+            if (!in_array($level, Program::ACCREDITATION_LEVELS, true)) {
+                throw new UnprocessableEntityHttpException('The selected program does not have a valid accreditation level.');
             }
+            $data->setAccreditationLevel($level);
             if ($level === 'Level III') {
                 if (!in_array($data->getProgramType(), ['undergraduate', 'graduate'], true)) {
                     throw new UnprocessableEntityHttpException('Select an undergraduate or graduate program type.');

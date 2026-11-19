@@ -124,9 +124,12 @@ export const fetchSarRecommendations = (areaAssignmentId) =>
   api.get(`/sar_recommendations?areaAssignment=${areaAssignmentId}`)
     .then(r => r.data['hydra:member'] || r.data.member || [])
 
+export const createSarRecommendation = (data) =>
+  api.post('/sar_recommendations', data)
+
 // ── Notifications ──────────────────────────────────────────────────────
 export const fetchNotifications = () =>
-  api.get('/notifications').then(r => r.data['hydra:member'])
+  api.get('/notifications').then(r => r.data['hydra:member'] || r.data.member || [])
 export const fetchUnreadCount = () =>
   api.get('/notifications/unread-count').then(r => r.data.count)
 export const markNotificationRead = (id) =>

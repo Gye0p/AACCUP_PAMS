@@ -42,15 +42,10 @@ class DashboardController extends AbstractController
             $cycles = array_filter($cycles, fn($c) => $c->getProgram()->getCollege() === $user->getCollege());
         } elseif (!$canViewAll && $this->isGranted('ROLE_INTERNAL_ACCREDITOR')) {
             $cycles = array_filter($cycles, function ($cycle) use ($user): bool {
-                foreach ($cycle->getAreaAssignments() as $assignment) {
-                    if ($this->assignmentRepository->findOneBy([
-                        'internalAccreditor' => $user,
-                        'areaAssignment' => $assignment,
-                    ])) {
-                        return true;
-                    }
-                }
-                return false;
+                return $this->assignmentRepository->findOneBy([
+                    'internalAccreditor' => $user,
+                    'program' => $cycle->getProgram(),
+                ]) !== null;
             });
         } elseif (!$canViewAll && $this->isGranted('ROLE_AREA_COORDINATOR')) {
             $cycles = array_filter($cycles, function ($cycle) use ($user): bool {

@@ -29,6 +29,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 class Program
 {
+    public const ACCREDITATION_LEVELS = ['Level I', 'Level II', 'Level III', 'Level IV'];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -74,6 +76,17 @@ class Program
 
     public function getAccreditationLevel(): ?string { return $this->accreditationLevel; }
     public function setAccreditationLevel(?string $accreditationLevel): static { $this->accreditationLevel = $accreditationLevel; return $this; }
+
+    public function advanceAccreditationLevel(): bool
+    {
+        $currentIndex = array_search($this->accreditationLevel, self::ACCREDITATION_LEVELS, true);
+        if ($currentIndex === false || $currentIndex >= count(self::ACCREDITATION_LEVELS) - 1) {
+            return false;
+        }
+
+        $this->accreditationLevel = self::ACCREDITATION_LEVELS[$currentIndex + 1];
+        return true;
+    }
 
     public function getValidityEnd(): ?\DateTimeInterface { return $this->validityEnd; }
     public function setValidityEnd(?\DateTimeInterface $validityEnd): static { $this->validityEnd = $validityEnd; return $this; }
