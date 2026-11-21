@@ -9,6 +9,7 @@ import {
   fetchPrograms,
   fetchUsers,
   fetchAreas,
+  resetUserPassword,
 } from '../api'
 import Layout from '../components/Layout'
 
@@ -82,7 +83,7 @@ export default function AdminPage() {
   )
   const selectedProgram = programs?.find(program => program['@id'] === form.program)
   const accreditationLevel = selectedProgram?.accreditationLevel
-  const level3MandatoryNumbers = form.programType === 'graduate' ? ['III', 'VI'] : ['III', 'V']
+  const level3MandatoryNumbers = form.programType === 'graduate' ? ['III', 'V'] : ['III', 'VI']
   const optionalAreas = standardAreas.filter(area =>
     !level3MandatoryNumbers.includes(area.areaNumber)
   )
@@ -174,8 +175,8 @@ export default function AdminPage() {
                       className="form-select"
                     >
                       <option value="">Select program type</option>
-                      <option value="undergraduate">Undergraduate — mandatory: III Instruction, V Research</option>
-                      <option value="graduate">Graduate — mandatory: III Instruction, VI Extension</option>
+                      <option value="undergraduate">Undergraduate — mandatory: III Instruction, VI Extension</option>
+                      <option value="graduate">Graduate — mandatory: III Instruction, V Research</option>
                     </select>
                   </FormField>
 
@@ -317,6 +318,9 @@ function InternalAccreditorAssignmentPanel() {
   const [internalAccreditor, setInternalAccreditor] = useState('')
   const [program, setProgram] = useState('')
   const [error, setError] = useState('')
+  const [resetUser, setResetUser] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [resetMessage, setResetMessage] = useState('')
 
   const { data: users = [] } = useQuery({ queryKey: ['users'], queryFn: fetchUsers })
   const { data: programs = [] } = useQuery({ queryKey: ['programs'], queryFn: fetchPrograms })
@@ -343,6 +347,20 @@ function InternalAccreditorAssignmentPanel() {
       qc.invalidateQueries({ queryKey: ['internal-accreditor-assignments'] })
     },
     onError: (err) => setError(err.response?.data?.detail || 'Failed to remove the assignment.'),
+  })
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: () => resetUserPassword(resetUser, newPassword),
+    onSuccess: () => {
+      setResetUser('')
+      setNewPassword('')
+      setError('')
+      setResetMessage('Password reset successfully.')
+    },
+    onError: (err) => {
+      setResetMessage('')
+      setError(err.response?.data?.detail || 'Failed to reset the password.')
+    },
   })
 
   const internalAccreditors = users.filter(user => user.role === 'ROLE_INTERNAL_ACCREDITOR')
@@ -409,6 +427,44 @@ function InternalAccreditorAssignmentPanel() {
           ))}
         </div>
       )}
+
+      <div className="mt-6 border-t border-[#252525] pt-5">
+        <h3 className="text-[13px] font-semibold text-white mb-1">Reset User Password</h3>
+        <p className="text-[12px] text-[#6b6b6b] mb-3">
+          Set a new password directly for an authorized user.
+        </p>
+        {resetMessage && <p className="text-[12px] text-[#4ade80] mb-3">{resetMessage}</p>}
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault()
+            resetPasswordMutation.mutate()
+          }}
+        >
+          <select value={resetUser} onChange={event => setResetUser(event.target.value)} required className="form-select w-full">
+            <option value="">Select user</option>
+            {users.map(user => (
+              <option key={user.id} value={user.id}>{user.fullName || user.email}</option>
+            ))}
+          </select>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={event => setNewPassword(event.target.value)}
+            minLength={8}
+            required
+            placeholder="New password (minimum 8 characters)"
+            className="form-input w-full"
+          />
+          <button
+            type="submit"
+            disabled={resetPasswordMutation.isPending}
+            className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold text-[13px] px-4 py-2.5 rounded disabled:opacity-50"
+          >
+            {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

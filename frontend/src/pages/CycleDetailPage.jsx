@@ -211,7 +211,7 @@ export function AreaAccordionItem({ areaAssignment, areaIndex, cycle, isOpen, on
 
   let areaTypeLabel = null
   if (cycle?.accreditationLevel === 'Level III') {
-    const mandatoryNumbers = cycle.programType === 'graduate' ? ['III', 'VI'] : ['III', 'V']
+    const mandatoryNumbers = cycle.programType === 'graduate' ? ['III', 'V'] : ['III', 'VI']
     const selectedOptionalAreas = cycle.optionalAreaIds || []
     areaTypeLabel = mandatoryNumbers.includes(areaNumber)
       ? 'Mandatory'

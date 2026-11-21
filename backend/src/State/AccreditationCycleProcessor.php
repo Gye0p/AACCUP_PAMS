@@ -63,8 +63,7 @@ class AccreditationCycleProcessor implements ProcessorInterface
             if ($level === 'Level I' || $level === 'Level II') {
                 $areaNumbers = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
             } elseif ($level === 'Level III') {
-                $mandatory = $data->getProgramType() === 'graduate' ? ['III', 'VI'] : ['III', 'V'];
-                $areaNumbers = array_merge($mandatory, array_map(
+                $areaNumbers = array_merge(self::mandatoryAreaNumbers($data->getProgramType()), array_map(
                     static fn ($id) => (string) $id,
                     $data->getOptionalAreaIds() ?? []
                 ));
@@ -108,6 +107,11 @@ class AccreditationCycleProcessor implements ProcessorInterface
         }
 
         return $result;
+    }
+
+    public static function mandatoryAreaNumbers(?string $programType): array
+    {
+        return $programType === 'graduate' ? ['III', 'V'] : ['III', 'VI'];
     }
 
     private function sendCycleCreatedNotifications(AccreditationCycle $cycle): void

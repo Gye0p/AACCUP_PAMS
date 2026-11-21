@@ -41,6 +41,9 @@
    2. Enter the password and select **Sign in**.
    3. Confirm that **Dashboard** and **Administration** are visible.
    4. Open **Administration**.
+   5. To reset an authorized user's password, use **Reset User Password**,
+      select the user, enter a password with at least 8 characters, and select
+      **Reset Password**. Password resets are restricted to QUAMC Admins.
 
    ### Step 3: Launch or select the demo cycle
 
@@ -56,7 +59,9 @@
    8. Confirm that the cycle appears in **All Cycles**.
    9. Explain that completing every area advances the program to the next level
       automatically for its next cycle.
-   10. To enter findings from the SAR, open the cycle, expand an AACCUP area,
+   10. Explain that authenticated changes are recorded in the audit log for
+       accountability.
+   11. To enter findings from the SAR, open the cycle, expand an AACCUP area,
        and select **Add Recommendation** in the SAR Recommendations section.
        Enter the recommendation text, select Mandatory or Enhancement, and
        choose its priority.

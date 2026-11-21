@@ -63,6 +63,11 @@ class Program
     #[Groups(['program:read', 'program:write'])]
     private ?\DateTimeInterface $validityEnd = null;
 
+    /** Date when current accreditation begins */
+    #[ORM\Column(type: 'date', nullable: true)]
+    #[Groups(['program:read', 'program:write'])]
+    private ?\DateTimeInterface $validityStart = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getName(): ?string { return $this->name; }
@@ -90,4 +95,7 @@ class Program
 
     public function getValidityEnd(): ?\DateTimeInterface { return $this->validityEnd; }
     public function setValidityEnd(?\DateTimeInterface $validityEnd): static { $this->validityEnd = $validityEnd; return $this; }
+
+    public function getValidityStart(): ?\DateTimeInterface { return $this->validityStart; }
+    public function setValidityStart(?\DateTimeInterface $validityStart): static { $this->validityStart = $validityStart; return $this; }
 }

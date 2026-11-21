@@ -114,6 +114,8 @@ export const fetchUsers = () => fetchCollection('/users')
 export const createUser = (data) => api.post('/users', data)
 export const updateUser = (id, data) =>
   api.patch(`/users/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+export const resetUserPassword = (id, newPassword) =>
+  api.post(`/admin/users/${id}/reset-password`, { newPassword }, { headers: { 'Content-Type': 'application/json' } })
 export const createInternalAccreditorAssignment = (data) => api.post('/internal_accreditor_assignments', data)
 export const fetchInternalAccreditorAssignments = () =>
   api.get('/internal_accreditor_assignments').then(r => r.data['hydra:member'])
